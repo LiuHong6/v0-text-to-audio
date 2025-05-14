@@ -1,12 +1,19 @@
 import { NextResponse } from "next/server"
+import { createServerSupabaseClient } from "@/lib/supabase"
 
 export async function POST(request: Request) {
   try {
+    const supabase = createServerSupabaseClient()
     const { text } = await request.json()
 
     if (!text || typeof text !== "string") {
       return NextResponse.json({ error: "文本内容不能为空" }, { status: 400 })
     }
+
+    // 获取当前用户（如果已登录）
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
 
     // 这里我们使用一个简单的示例URL
     // 在实际应用中，你需要集成真实的文本转语音API
