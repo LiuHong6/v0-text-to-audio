@@ -10,10 +10,21 @@ import { createClientSupabaseClient } from "@/lib/supabase"
 import { useToast } from "@/hooks/use-toast"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { allVoices, voicesByLanguage, getDefaultVoice } from "@/lib/voice-options"
 
 export default function TextToSpeechPage() {
   const [text, setText] = useState("")
   const [title, setTitle] = useState("")
+  const [selectedVoice, setSelectedVoice] = useState(getDefaultVoice().id)
   const [audioUrl, setAudioUrl] = useState<string | null>(null)
   const [isGenerating, setIsGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -31,17 +42,25 @@ export default function TextToSpeechPage() {
       setIsGenerating(true)
       setError(null)
 
+      // 找到选中的语音选项
+      const voice = allVoices.find((v) => v.id === selectedVoice) || getDefaultVoice()
+
       // 使用服务器端API生成语音
       const response = await fetch("/api/text-to-speech", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ text }),
+        body: JSON.stringify({
+          text,
+          voice: voice.id,
+          languageCode: voice.languageCode,
+        }),
       })
 
       if (!response.ok) {
-        throw new Error("生成音频失败")
+        const errorData = await response.json()
+        throw new Error(errorData.details || "生成音频失败")
       }
 
       const data = await response.json()
@@ -71,7 +90,7 @@ export default function TextToSpeechPage() {
         }
       }
     } catch (err) {
-      setError("生成音频时出错，请重试")
+      setError(err instanceof Error ? err.message : "生成音频时出错，请重试")
       console.error(err)
     } finally {
       setIsGenerating(false)
@@ -97,6 +116,27 @@ export default function TextToSpeechPage() {
               />
             </div>
           )}
+
+          <div className="space-y-2">
+            <Label htmlFor="voice">语音选项</Label>
+            <Select value={selectedVoice} onValueChange={setSelectedVoice}>
+              <SelectTrigger>
+                <SelectValue placeholder="选择语音" />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(voicesByLanguage).map(([language, voices]) => (
+                  <SelectGroup key={language}>
+                    <SelectLabel>{language}</SelectLabel>
+                    {voices.map((voice) => (
+                      <SelectItem key={voice.id} value={voice.id}>
+                        {voice.name}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
           <div className="space-y-2">
             <Label htmlFor="text">文本内容</Label>

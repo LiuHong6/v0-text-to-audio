@@ -34,6 +34,9 @@ export default function Navbar() {
                 <Link href="/history" className="text-sm font-medium hover:underline">
                   历史记录
                 </Link>
+                <Link href="/settings" className="text-sm font-medium hover:underline">
+                  设置
+                </Link>
               </>
             )}
           </nav>
