@@ -15,7 +15,7 @@ const getGoogleCredentials = () => {
 export async function POST(request: Request) {
   try {
     const supabase = createServerSupabaseClient()
-    const { text, voice = "zh-CN-Standard-A", languageCode = "zh-CN" } = await request.json()
+    const { text, voice = "cmn-CN-Standard-A", languageCode = "cmn-CN" } = await request.json()
 
     if (!text || typeof text !== "string") {
       return NextResponse.json({ error: "文本内容不能为空" }, { status: 400 })

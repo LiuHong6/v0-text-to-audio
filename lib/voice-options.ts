@@ -9,69 +9,76 @@ export type VoiceOption = {
 // 中文语音选项
 export const chineseVoices: VoiceOption[] = [
   {
-    id: "zh-CN-Standard-A",
+    id: "cmn-CN-Standard-A",
     name: "普通话 (女声)",
     gender: "FEMALE",
-    languageCode: "zh-CN",
+    languageCode: "cmn-CN",
     languageName: "中文 (普通话)",
   },
   {
-    id: "zh-CN-Standard-B",
+    id: "cmn-CN-Wavenet-A",
+    name: "普通话 (女声高级)",
+    gender: "FEMALE",
+    languageCode: "cmn-CN",
+    languageName: "中文 (普通话)",
+  },
+  {
+    id: "cmn-CN-Wavenet-B",
     name: "普通话 (男声)",
     gender: "MALE",
-    languageCode: "zh-CN",
+    languageCode: "cmn-CN",
     languageName: "中文 (普通话)",
   },
   {
-    id: "zh-CN-Standard-C",
+    id: "cmn-CN-Wavenet-C",
     name: "普通话 (男声 2)",
     gender: "MALE",
-    languageCode: "zh-CN",
+    languageCode: "cmn-CN",
     languageName: "中文 (普通话)",
   },
   {
-    id: "zh-CN-Standard-D",
+    id: "cmn-CN-Wavenet-D",
     name: "普通话 (女声 2)",
     gender: "FEMALE",
-    languageCode: "zh-CN",
+    languageCode: "cmn-CN",
     languageName: "中文 (普通话)",
   },
   {
-    id: "zh-TW-Standard-A",
+    id: "zh-TW-Wavenet-A",
     name: "台湾话 (女声)",
     gender: "FEMALE",
     languageCode: "zh-TW",
     languageName: "中文 (台湾)",
   },
-  { id: "zh-HK-Standard-A", name: "粤语 (女声)", gender: "FEMALE", languageCode: "zh-HK", languageName: "中文 (香港)" },
-  { id: "zh-HK-Standard-B", name: "粤语 (男声)", gender: "MALE", languageCode: "zh-HK", languageName: "中文 (香港)" },
+  { id: "zh-HK-Wavenet-A", name: "粤语 (女声)", gender: "FEMALE", languageCode: "zh-HK", languageName: "中文 (香港)" },
+  { id: "zh-HK-Wavenet-B", name: "粤语 (男声)", gender: "MALE", languageCode: "zh-HK", languageName: "中文 (香港)" },
 ]
 
 // 英文语音选项
 export const englishVoices: VoiceOption[] = [
   {
-    id: "en-US-Standard-A",
+    id: "en-US-Wavenet-A",
     name: "美式英语 (女声)",
     gender: "FEMALE",
     languageCode: "en-US",
     languageName: "英语 (美国)",
   },
   {
-    id: "en-US-Standard-B",
+    id: "en-US-Wavenet-B",
     name: "美式英语 (男声)",
     gender: "MALE",
     languageCode: "en-US",
     languageName: "英语 (美国)",
   },
   {
-    id: "en-GB-Standard-A",
+    id: "en-GB-Wavenet-A",
     name: "英式英语 (女声)",
     gender: "FEMALE",
     languageCode: "en-GB",
     languageName: "英语 (英国)",
   },
   {
-    id: "en-GB-Standard-B",
+    id: "en-GB-Wavenet-B",
     name: "英式英语 (男声)",
     gender: "MALE",
     languageCode: "en-GB",
@@ -81,10 +88,10 @@ export const englishVoices: VoiceOption[] = [
 
 // 日语语音选项
 export const japaneseVoices: VoiceOption[] = [
-  { id: "ja-JP-Standard-A", name: "日语 (女声)", gender: "FEMALE", languageCode: "ja-JP", languageName: "日语" },
-  { id: "ja-JP-Standard-B", name: "日语 (女声 2)", gender: "FEMALE", languageCode: "ja-JP", languageName: "日语" },
-  { id: "ja-JP-Standard-C", name: "日语 (男声)", gender: "MALE", languageCode: "ja-JP", languageName: "日语" },
-  { id: "ja-JP-Standard-D", name: "日语 (男声 2)", gender: "MALE", languageCode: "ja-JP", languageName: "日语" },
+  { id: "ja-JP-Wavenet-A", name: "日语 (女声)", gender: "FEMALE", languageCode: "ja-JP", languageName: "日语" },
+  { id: "ja-JP-Wavenet-B", name: "日语 (女声 2)", gender: "FEMALE", languageCode: "ja-JP", languageName: "日语" },
+  { id: "ja-JP-Wavenet-C", name: "日语 (男声)", gender: "MALE", languageCode: "ja-JP", languageName: "日语" },
+  { id: "ja-JP-Wavenet-D", name: "日语 (男声 2)", gender: "MALE", languageCode: "ja-JP", languageName: "日语" },
 ]
 
 // 所有语音选项
