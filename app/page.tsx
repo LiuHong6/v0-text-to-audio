@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Volume2, Loader2 } from "lucide-react"
+import { Volume2, Loader2, Download, AlertCircle } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
 import { createClientSupabaseClient } from "@/lib/supabase"
 import { useToast } from "@/hooks/use-toast"
@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { allVoices, voicesByLanguage, getDefaultVoice } from "@/lib/voice-options"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 export default function TextToSpeechPage() {
   const [text, setText] = useState("")
@@ -28,6 +29,7 @@ export default function TextToSpeechPage() {
   const [audioUrl, setAudioUrl] = useState<string | null>(null)
   const [isGenerating, setIsGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [isFallbackAudio, setIsFallbackAudio] = useState(false)
   const { user } = useAuth()
   const { toast } = useToast()
   const supabase = createClientSupabaseClient()
@@ -41,6 +43,7 @@ export default function TextToSpeechPage() {
     try {
       setIsGenerating(true)
       setError(null)
+      setIsFallbackAudio(false)
 
       // 找到选中的语音选项
       const voice = allVoices.find((v) => v.id === selectedVoice) || getDefaultVoice()
@@ -58,21 +61,50 @@ export default function TextToSpeechPage() {
         }),
       })
 
+      // 检查响应状态
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.details || "生成音频失败")
+        let errorMessage = "生成音频失败"
+        try {
+          const errorData = await response.json()
+          errorMessage = errorData.error || errorData.details || errorMessage
+        } catch (e) {
+          // 如果响应不是JSON格式，使用状态文本
+          errorMessage = `服务器错误: ${response.status} ${response.statusText}`
+        }
+        throw new Error(errorMessage)
       }
 
-      const data = await response.json()
+      // 解析JSON响应
+      let data
+      try {
+        data = await response.json()
+      } catch (e) {
+        throw new Error("服务器返回了无效的JSON数据")
+      }
+
+      if (!data.audioUrl) {
+        throw new Error("服务器未返回音频URL")
+      }
+
       setAudioUrl(data.audioUrl)
 
+      // 检查是否使用了备用音频
+      if (data.fallback) {
+        setIsFallbackAudio(true)
+        toast({
+          title: "使用示例音频",
+          description: data.message || "Google TTS暂时不可用，使用示例音频代替",
+          variant: "warning",
+        })
+      }
+
       // 如果用户已登录，保存到历史记录
-      if (user) {
+      if (user && !data.savedToHistory) {
         const { error: saveError } = await supabase.from("audio_history").insert({
           user_id: user.id,
           text_content: text,
           audio_url: data.audioUrl,
-          title: title || null,
+          title: title || `${voice.name} 生成的音频`,
         })
 
         if (saveError) {
@@ -95,6 +127,18 @@ export default function TextToSpeechPage() {
     } finally {
       setIsGenerating(false)
     }
+  }
+
+  // 下载音频文件
+  const downloadAudio = () => {
+    if (!audioUrl) return
+
+    const link = document.createElement("a")
+    link.href = audioUrl
+    link.download = `${title || "语音"}_${new Date().toISOString().slice(0, 10)}.mp3`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
   }
 
   return (
@@ -149,7 +193,13 @@ export default function TextToSpeechPage() {
             />
           </div>
 
-          {error && <div className="text-sm text-red-500">{error}</div>}
+          {error && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>错误</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
 
           <div className="flex justify-end">
             <Button onClick={generateSpeech} disabled={isGenerating || !text.trim()} className="w-full sm:w-auto">
@@ -170,9 +220,26 @@ export default function TextToSpeechPage() {
           {audioUrl && (
             <div className="mt-6 p-4 bg-muted rounded-lg">
               <h3 className="text-lg font-medium mb-2">您的音频已生成</h3>
+
+              {isFallbackAudio && (
+                <Alert className="mb-4">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>使用示例音频</AlertTitle>
+                  <AlertDescription>Google TTS服务暂时不可用，当前使用示例音频代替。请稍后再试。</AlertDescription>
+                </Alert>
+              )}
+
               <audio controls className="w-full" src={audioUrl}>
                 您的浏览器不支持音频播放
               </audio>
+
+              <div className="flex justify-end mt-2">
+                <Button variant="outline" size="sm" onClick={downloadAudio}>
+                  <Download className="mr-2 h-4 w-4" />
+                  下载音频
+                </Button>
+              </div>
+
               {!user && (
                 <div className="mt-4 p-3 bg-primary/10 rounded border border-primary/20 text-sm">
                   <p>登录或注册账户，即可保存您的音频历史记录！</p>
