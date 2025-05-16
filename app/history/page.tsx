@@ -4,9 +4,10 @@ import { useEffect, useState } from "react"
 import ProtectedRoute from "@/components/protected-route"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { useToast } from "@/hooks/use-toast"
+import { useToast } from "@/components/ui/use-toast"
 import { createClientSupabaseClient } from "@/lib/supabase"
-import { Play, Trash2 } from "lucide-react"
+import { Trash2 } from "lucide-react"
+import SyncAudioPlayer from "@/components/sync-audio-player"
 
 type AudioHistoryItem = {
   id: string
@@ -19,6 +20,7 @@ type AudioHistoryItem = {
 export default function HistoryPage() {
   const [history, setHistory] = useState<AudioHistoryItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [expandedItem, setExpandedItem] = useState<string | null>(null)
   const { toast } = useToast()
   const supabase = createClientSupabaseClient()
 
@@ -68,14 +70,27 @@ export default function HistoryPage() {
     }
   }
 
+  const toggleExpandItem = (id: string) => {
+    setExpandedItem(expandedItem === id ? null : id)
+  }
+
+  const downloadAudio = (item: AudioHistoryItem) => {
+    const link = document.createElement("a")
+    link.href = item.audio_url
+    link.download = `${item.title || "语音"}_${new Date(item.created_at).toISOString().slice(0, 10)}.mp3`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
   return (
     <ProtectedRoute>
       <div className="container py-10">
         <h1 className="text-3xl font-bold mb-6">历史记录</h1>
 
         {isLoading ? (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {[...Array(6)].map((_, i) => (
+          <div className="grid gap-4">
+            {[...Array(3)].map((_, i) => (
               <Card key={i} className="animate-pulse">
                 <CardHeader className="pb-2">
                   <div className="h-5 bg-muted rounded w-1/2 mb-2"></div>
@@ -98,9 +113,9 @@ export default function HistoryPage() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="space-y-4">
             {history.map((item) => (
-              <Card key={item.id}>
+              <Card key={item.id} className="overflow-hidden">
                 <CardHeader className="pb-2">
                   <CardTitle className="flex justify-between items-center">
                     <span className="truncate">{item.title || "未命名语音"}</span>
@@ -111,13 +126,29 @@ export default function HistoryPage() {
                   <div className="text-xs text-muted-foreground">{new Date(item.created_at).toLocaleString()}</div>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm line-clamp-2 mb-4">{item.text_content}</p>
-                  <div className="flex justify-between items-center">
-                    <audio src={item.audio_url} controls className="w-full h-8" />
-                    <Button variant="ghost" size="icon" className="ml-2">
-                      <Play className="h-4 w-4" />
-                    </Button>
+                  <div className="mb-4">
+                    <p
+                      className="text-sm line-clamp-2 cursor-pointer hover:text-primary"
+                      onClick={() => toggleExpandItem(item.id)}
+                    >
+                      {item.text_content}
+                    </p>
                   </div>
+
+                  {expandedItem === item.id ? (
+                    <SyncAudioPlayer
+                      audioUrl={item.audio_url}
+                      text={item.text_content}
+                      onDownload={() => downloadAudio(item)}
+                    />
+                  ) : (
+                    <div className="flex justify-between items-center">
+                      <audio src={item.audio_url} controls className="w-full h-8" />
+                      <Button variant="ghost" size="sm" className="ml-2" onClick={() => toggleExpandItem(item.id)}>
+                        展开
+                      </Button>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             ))}

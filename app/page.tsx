@@ -4,10 +4,10 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Volume2, Loader2, Download, AlertCircle } from "lucide-react"
+import { Volume2, Loader2, AlertCircle } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
 import { createClientSupabaseClient } from "@/lib/supabase"
-import { useToast } from "@/hooks/use-toast"
+import { useToast } from "@/components/ui/use-toast"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select"
 import { allVoices, voicesByLanguage, getDefaultVoice } from "@/lib/voice-options"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import SyncAudioPlayer from "@/components/sync-audio-player"
 
 export default function TextToSpeechPage() {
   const [text, setText] = useState("")
@@ -44,6 +45,7 @@ export default function TextToSpeechPage() {
       setIsGenerating(true)
       setError(null)
       setIsFallbackAudio(false)
+      setAudioUrl(null)
 
       // 找到选中的语音选项
       const voice = allVoices.find((v) => v.id === selectedVoice) || getDefaultVoice()
@@ -218,7 +220,7 @@ export default function TextToSpeechPage() {
           </div>
 
           {audioUrl && (
-            <div className="mt-6 p-4 bg-muted rounded-lg">
+            <div className="mt-6">
               <h3 className="text-lg font-medium mb-2">您的音频已生成</h3>
 
               {isFallbackAudio && (
@@ -229,16 +231,8 @@ export default function TextToSpeechPage() {
                 </Alert>
               )}
 
-              <audio controls className="w-full" src={audioUrl}>
-                您的浏览器不支持音频播放
-              </audio>
-
-              <div className="flex justify-end mt-2">
-                <Button variant="outline" size="sm" onClick={downloadAudio}>
-                  <Download className="mr-2 h-4 w-4" />
-                  下载音频
-                </Button>
-              </div>
+              {/* 替换原来的音频播放器为同步播放器 */}
+              <SyncAudioPlayer audioUrl={audioUrl} text={text} onDownload={downloadAudio} />
 
               {!user && (
                 <div className="mt-4 p-3 bg-primary/10 rounded border border-primary/20 text-sm">
