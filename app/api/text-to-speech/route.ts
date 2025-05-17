@@ -34,34 +34,41 @@ const getGoogleCredentials = () => {
 // 将文本分割成句子
 function splitIntoSentences(text: string): string[] {
   // 使用正则表达式分割句子，考虑中英文标点
+  // 修改正则表达式以更准确地分割句子
   const sentenceRegex = /([.!?。！？…]+[\s\n]*)/g
-  const sentences = text.split(sentenceRegex).filter(Boolean)
+  const parts = text.split(sentenceRegex)
 
   // 合并句子和标点
-  const result = []
-  for (let i = 0; i < sentences.length; i += 2) {
-    if (i + 1 < sentences.length) {
-      result.push(sentences[i] + sentences[i + 1])
-    } else {
-      result.push(sentences[i])
+  const sentences = []
+  for (let i = 0; i < parts.length - 1; i += 2) {
+    if (parts[i] && parts[i + 1]) {
+      sentences.push(parts[i] + parts[i + 1])
+    } else if (parts[i]) {
+      sentences.push(parts[i])
     }
   }
 
+  // 如果最后一部分没有标点，也添加进去
+  if (parts.length % 2 === 1 && parts[parts.length - 1]) {
+    sentences.push(parts[parts.length - 1])
+  }
+
   // 处理可能的空句子和修剪空白
-  return result.map((s) => s.trim()).filter((s) => s.length > 0)
+  return sentences.map((s) => s.trim()).filter((s) => s.length > 0)
 }
 
 // 为SSML标记添加句子标记
-function addSentenceMarks(text: string): string {
+function addSentenceMarks(text: string): { ssml: string; sentences: string[] } {
   const sentences = splitIntoSentences(text)
   let ssml = "<speak>"
 
   sentences.forEach((sentence, index) => {
+    // 在每个句子前添加标记
     ssml += `<mark name="sentence_${index}"/>${sentence} `
   })
 
   ssml += "</speak>"
-  return ssml
+  return { ssml, sentences }
 }
 
 export async function POST(request: Request) {
@@ -102,11 +109,13 @@ export async function POST(request: Request) {
       console.log(`Calling Google TTS API with voice: ${voice}, language: ${languageCode}`)
 
       // 准备SSML文本，添加句子标记
-      const ssmlText = addSentenceMarks(text)
+      const { ssml, sentences } = addSentenceMarks(text)
+
+      console.log("Generated SSML:", ssml.substring(0, 200) + "...")
 
       // 调用Google TTS API，启用时间点功能
       const [response] = await ttsClient.synthesizeSpeech({
-        input: { ssml: ssmlText },
+        input: { ssml },
         voice: {
           languageCode,
           name: voice,
@@ -123,9 +132,9 @@ export async function POST(request: Request) {
 
       // 提取时间点信息
       const timepoints = response.timepoints || []
+      console.log("Received timepoints:", JSON.stringify(timepoints))
 
       // 将时间点转换为句子时间戳
-      const sentences = splitIntoSentences(text)
       const sentenceTimestamps = sentences.map((sentence, index) => {
         const markName = `sentence_${index}`
         const timepoint = timepoints.find((tp) => tp.markName === markName)
@@ -133,7 +142,7 @@ export async function POST(request: Request) {
         return {
           text: sentence,
           start: timepoint ? Number(timepoint.timeSeconds) : 0,
-          // 结束时间将在前端计算，因为我们只有开始时间
+          // 结束时间将在前端计算
         }
       })
 

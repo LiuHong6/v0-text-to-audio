@@ -25,10 +25,17 @@ export default function SyncAudioPlayer({ audioUrl, text, sentenceTimestamps = [
   const [duration, setDuration] = useState(0)
   const [processedTimestamps, setProcessedTimestamps] = useState<SentenceTimestamp[]>([])
   const [currentSentenceIndex, setCurrentSentenceIndex] = useState(-1)
+  const [isAudioLoaded, setIsAudioLoaded] = useState(false)
+
+  // 调试信息
+  useEffect(() => {
+    console.log("Received sentenceTimestamps:", sentenceTimestamps)
+  }, [sentenceTimestamps])
 
   // 处理时间戳，计算每个句子的结束时间
   useEffect(() => {
     if (sentenceTimestamps.length > 0) {
+      console.log("Processing timestamps:", sentenceTimestamps)
       const processed = [...sentenceTimestamps]
 
       // 计算每个句子的结束时间
@@ -39,15 +46,17 @@ export default function SyncAudioPlayer({ audioUrl, text, sentenceTimestamps = [
       }
 
       setProcessedTimestamps(processed)
-    } else if (text) {
+    } else if (text && isAudioLoaded) {
       // 如果没有提供时间戳，则使用备用方法
+      console.log("No timestamps provided, using fallback method")
       import("@/utils/text-processor").then(({ splitIntoSentences, estimateTimestamps }) => {
         const sentences = splitIntoSentences(text)
-        const initialDuration = text.length * 0.1 // 粗略估计：每个字符0.1秒
-        setProcessedTimestamps(estimateTimestamps(sentences, initialDuration))
+        const estimatedTimestamps = estimateTimestamps(sentences, duration || text.length * 0.1)
+        console.log("Estimated timestamps:", estimatedTimestamps)
+        setProcessedTimestamps(estimatedTimestamps)
       })
     }
-  }, [sentenceTimestamps, text])
+  }, [sentenceTimestamps, text, duration, isAudioLoaded])
 
   // 音频加载完成后更新实际时长和时间戳
   useEffect(() => {
@@ -57,6 +66,7 @@ export default function SyncAudioPlayer({ audioUrl, text, sentenceTimestamps = [
     const handleLoadedMetadata = () => {
       const actualDuration = audio.duration
       setDuration(actualDuration)
+      setIsAudioLoaded(true)
 
       // 如果使用的是估算的时间戳，则使用实际时长重新计算
       if (sentenceTimestamps.length === 0 && processedTimestamps.length > 0) {
@@ -158,14 +168,22 @@ export default function SyncAudioPlayer({ audioUrl, text, sentenceTimestamps = [
 
     const audio = audioRef.current
     if (audio) {
-      // 跳转到句子的开始时间
-      audio.currentTime = processedTimestamps[index].start
+      const startTime = processedTimestamps[index].start
+      console.log(`Jumping to sentence ${index} at time ${startTime}`)
 
-      // 如果没有播放，则开始播放
-      if (!isPlaying) {
-        audio.play().catch((error) => {
-          console.error("播放失败:", error)
-        })
+      // 确保时间在有效范围内
+      if (startTime >= 0 && startTime <= audio.duration) {
+        // 跳转到句子的开始时间
+        audio.currentTime = startTime
+
+        // 如果没有播放，则开始播放
+        if (!isPlaying) {
+          audio.play().catch((error) => {
+            console.error("播放失败:", error)
+          })
+        }
+      } else {
+        console.error(`Invalid start time: ${startTime}`)
       }
     }
   }
@@ -225,22 +243,23 @@ export default function SyncAudioPlayer({ audioUrl, text, sentenceTimestamps = [
 
         {/* 句子显示区域 */}
         <div className="mt-4 max-h-60 overflow-y-auto border rounded-md p-3">
-          {processedTimestamps.map((sentence, index) => (
-            <p
-              key={index}
-              className={`py-1 px-2 my-1 rounded cursor-pointer transition-colors ${
-                index === currentSentenceIndex
-                  ? "bg-primary/20 font-medium border-l-4 border-primary"
-                  : "hover:bg-muted"
-              }`}
-              onClick={() => jumpToSentence(index)}
-              data-start-time={sentence.start}
-              data-end-time={sentence.end}
-            >
-              {sentence.text}
-            </p>
-          ))}
-          {processedTimestamps.length === 0 && (
+          {processedTimestamps.length > 0 ? (
+            processedTimestamps.map((sentence, index) => (
+              <p
+                key={index}
+                className={`py-1 px-2 my-1 rounded cursor-pointer transition-colors ${
+                  index === currentSentenceIndex
+                    ? "bg-primary/20 font-medium border-l-4 border-primary"
+                    : "hover:bg-muted"
+                }`}
+                onClick={() => jumpToSentence(index)}
+                data-start-time={sentence.start}
+                data-end-time={sentence.end}
+              >
+                {sentence.text}
+              </p>
+            ))
+          ) : (
             <div className="flex justify-center py-4">
               <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-primary"></div>
             </div>

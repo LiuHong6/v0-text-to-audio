@@ -100,7 +100,10 @@ export default function TextToSpeechPage() {
 
       // 设置句子时间戳（如果有）
       if (data.sentenceTimestamps && Array.isArray(data.sentenceTimestamps)) {
+        console.log("Received sentence timestamps:", data.sentenceTimestamps)
         setSentenceTimestamps(data.sentenceTimestamps)
+      } else {
+        console.log("No sentence timestamps received")
       }
 
       // 检查是否使用了备用音频
@@ -120,8 +123,8 @@ export default function TextToSpeechPage() {
           text_content: text,
           audio_url: data.audioUrl,
           title: title || `${voice.name} 生成的音频`,
-          // 也可以考虑保存时间戳数据
-          // timestamps: JSON.stringify(data.sentenceTimestamps || [])
+          // 保存时间戳数据
+          timestamps: data.sentenceTimestamps ? JSON.stringify(data.sentenceTimestamps) : null,
         })
 
         if (saveError) {
