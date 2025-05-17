@@ -9,12 +9,19 @@ import { createClientSupabaseClient } from "@/lib/supabase"
 import { Trash2 } from "lucide-react"
 import SyncAudioPlayer from "@/components/sync-audio-player"
 
+interface SentenceTimestamp {
+  text: string
+  start: number
+  end?: number
+}
+
 type AudioHistoryItem = {
   id: string
   title: string | null
   text_content: string
   audio_url: string
   created_at: string
+  timestamps?: string // JSON字符串形式的时间戳数据
 }
 
 export default function HistoryPage() {
@@ -83,6 +90,18 @@ export default function HistoryPage() {
     document.body.removeChild(link)
   }
 
+  // 解析时间戳数据（如果有）
+  const parseTimestamps = (item: AudioHistoryItem): SentenceTimestamp[] => {
+    if (!item.timestamps) return []
+
+    try {
+      return JSON.parse(item.timestamps)
+    } catch (e) {
+      console.error("Error parsing timestamps:", e)
+      return []
+    }
+  }
+
   return (
     <ProtectedRoute>
       <div className="container py-10">
@@ -139,6 +158,7 @@ export default function HistoryPage() {
                     <SyncAudioPlayer
                       audioUrl={item.audio_url}
                       text={item.text_content}
+                      sentenceTimestamps={parseTimestamps(item)}
                       onDownload={() => downloadAudio(item)}
                     />
                   ) : (

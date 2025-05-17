@@ -23,20 +23,24 @@ import { allVoices, voicesByLanguage, getDefaultVoice } from "@/lib/voice-option
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import SyncAudioPlayer from "@/components/sync-audio-player"
 
+interface SentenceTimestamp {
+  text: string
+  start: number
+  end?: number
+}
+
 export default function TextToSpeechPage() {
   const [text, setText] = useState("")
   const [title, setTitle] = useState("")
   const [selectedVoice, setSelectedVoice] = useState(getDefaultVoice().id)
   const [audioUrl, setAudioUrl] = useState<string | null>(null)
+  const [sentenceTimestamps, setSentenceTimestamps] = useState<SentenceTimestamp[]>([])
   const [isGenerating, setIsGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isFallbackAudio, setIsFallbackAudio] = useState(false)
   const { user } = useAuth()
   const { toast } = useToast()
   const supabase = createClientSupabaseClient()
-
-  // 在生成音频的函数中，保存语言代码
-  const [selectedLanguageCode, setSelectedLanguageCode] = useState<string>(getDefaultVoice().languageCode)
 
   const generateSpeech = async () => {
     if (!text.trim()) {
@@ -49,6 +53,7 @@ export default function TextToSpeechPage() {
       setError(null)
       setIsFallbackAudio(false)
       setAudioUrl(null)
+      setSentenceTimestamps([])
 
       // 找到选中的语音选项
       const voice = allVoices.find((v) => v.id === selectedVoice) || getDefaultVoice()
@@ -93,6 +98,11 @@ export default function TextToSpeechPage() {
 
       setAudioUrl(data.audioUrl)
 
+      // 设置句子时间戳（如果有）
+      if (data.sentenceTimestamps && Array.isArray(data.sentenceTimestamps)) {
+        setSentenceTimestamps(data.sentenceTimestamps)
+      }
+
       // 检查是否使用了备用音频
       if (data.fallback) {
         setIsFallbackAudio(true)
@@ -110,6 +120,8 @@ export default function TextToSpeechPage() {
           text_content: text,
           audio_url: data.audioUrl,
           title: title || `${voice.name} 生成的音频`,
+          // 也可以考虑保存时间戳数据
+          // timestamps: JSON.stringify(data.sentenceTimestamps || [])
         })
 
         if (saveError) {
@@ -146,15 +158,6 @@ export default function TextToSpeechPage() {
     document.body.removeChild(link)
   }
 
-  // 在选择语音时更新语言代码
-  const handleVoiceChange = (voiceId: string) => {
-    setSelectedVoice(voiceId)
-    const voice = allVoices.find((v) => v.id === voiceId)
-    if (voice) {
-      setSelectedLanguageCode(voice.languageCode)
-    }
-  }
-
   return (
     <div className="container max-w-3xl py-10">
       <Card>
@@ -177,7 +180,7 @@ export default function TextToSpeechPage() {
 
           <div className="space-y-2">
             <Label htmlFor="voice">语音选项</Label>
-            <Select value={selectedVoice} onValueChange={(voiceId) => handleVoiceChange(voiceId)}>
+            <Select value={selectedVoice} onValueChange={setSelectedVoice}>
               <SelectTrigger>
                 <SelectValue placeholder="选择语音" />
               </SelectTrigger>
@@ -243,11 +246,11 @@ export default function TextToSpeechPage() {
                 </Alert>
               )}
 
-              {/* 传递语言代码到同步播放器 */}
+              {/* 传递API返回的时间戳到同步播放器 */}
               <SyncAudioPlayer
                 audioUrl={audioUrl}
                 text={text}
-                languageCode={selectedLanguageCode}
+                sentenceTimestamps={sentenceTimestamps}
                 onDownload={downloadAudio}
               />
 

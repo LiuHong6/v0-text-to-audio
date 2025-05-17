@@ -31,6 +31,39 @@ const getGoogleCredentials = () => {
   }
 }
 
+// 将文本分割成句子
+function splitIntoSentences(text: string): string[] {
+  // 使用正则表达式分割句子，考虑中英文标点
+  const sentenceRegex = /([.!?。！？…]+[\s\n]*)/g
+  const sentences = text.split(sentenceRegex).filter(Boolean)
+
+  // 合并句子和标点
+  const result = []
+  for (let i = 0; i < sentences.length; i += 2) {
+    if (i + 1 < sentences.length) {
+      result.push(sentences[i] + sentences[i + 1])
+    } else {
+      result.push(sentences[i])
+    }
+  }
+
+  // 处理可能的空句子和修剪空白
+  return result.map((s) => s.trim()).filter((s) => s.length > 0)
+}
+
+// 为SSML标记添加句子标记
+function addSentenceMarks(text: string): string {
+  const sentences = splitIntoSentences(text)
+  let ssml = "<speak>"
+
+  sentences.forEach((sentence, index) => {
+    ssml += `<mark name="sentence_${index}"/>${sentence} `
+  })
+
+  ssml += "</speak>"
+  return ssml
+}
+
 export async function POST(request: Request) {
   try {
     // 解析请求
@@ -68,19 +101,41 @@ export async function POST(request: Request) {
 
       console.log(`Calling Google TTS API with voice: ${voice}, language: ${languageCode}`)
 
-      // 调用Google TTS API
+      // 准备SSML文本，添加句子标记
+      const ssmlText = addSentenceMarks(text)
+
+      // 调用Google TTS API，启用时间点功能
       const [response] = await ttsClient.synthesizeSpeech({
-        input: { text },
+        input: { ssml: ssmlText },
         voice: {
           languageCode,
           name: voice,
         },
-        audioConfig: { audioEncoding: "MP3" },
+        audioConfig: {
+          audioEncoding: "MP3",
+          enableTimePointing: ["SSML_MARK"], // 启用SSML标记的时间点
+        },
       })
 
       if (!response.audioContent) {
         throw new Error("Google TTS API did not return audio content")
       }
+
+      // 提取时间点信息
+      const timepoints = response.timepoints || []
+
+      // 将时间点转换为句子时间戳
+      const sentences = splitIntoSentences(text)
+      const sentenceTimestamps = sentences.map((sentence, index) => {
+        const markName = `sentence_${index}`
+        const timepoint = timepoints.find((tp) => tp.markName === markName)
+
+        return {
+          text: sentence,
+          start: timepoint ? Number(timepoint.timeSeconds) : 0,
+          // 结束时间将在前端计算，因为我们只有开始时间
+        }
+      })
 
       // 将音频数据上传到Supabase Storage
       const audioBuffer = Buffer.from(response.audioContent)
@@ -100,6 +155,7 @@ export async function POST(request: Request) {
 
       return NextResponse.json({
         audioUrl: urlData.publicUrl,
+        sentenceTimestamps,
         success: true,
       })
     } catch (googleError) {
