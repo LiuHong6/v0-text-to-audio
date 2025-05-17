@@ -35,6 +35,9 @@ export default function TextToSpeechPage() {
   const { toast } = useToast()
   const supabase = createClientSupabaseClient()
 
+  // 在生成音频的函数中，保存语言代码
+  const [selectedLanguageCode, setSelectedLanguageCode] = useState<string>(getDefaultVoice().languageCode)
+
   const generateSpeech = async () => {
     if (!text.trim()) {
       setError("请输入文本内容")
@@ -143,6 +146,15 @@ export default function TextToSpeechPage() {
     document.body.removeChild(link)
   }
 
+  // 在选择语音时更新语言代码
+  const handleVoiceChange = (voiceId: string) => {
+    setSelectedVoice(voiceId)
+    const voice = allVoices.find((v) => v.id === voiceId)
+    if (voice) {
+      setSelectedLanguageCode(voice.languageCode)
+    }
+  }
+
   return (
     <div className="container max-w-3xl py-10">
       <Card>
@@ -165,7 +177,7 @@ export default function TextToSpeechPage() {
 
           <div className="space-y-2">
             <Label htmlFor="voice">语音选项</Label>
-            <Select value={selectedVoice} onValueChange={setSelectedVoice}>
+            <Select value={selectedVoice} onValueChange={(voiceId) => handleVoiceChange(voiceId)}>
               <SelectTrigger>
                 <SelectValue placeholder="选择语音" />
               </SelectTrigger>
@@ -231,8 +243,13 @@ export default function TextToSpeechPage() {
                 </Alert>
               )}
 
-              {/* 替换原来的音频播放器为同步播放器 */}
-              <SyncAudioPlayer audioUrl={audioUrl} text={text} onDownload={downloadAudio} />
+              {/* 传递语言代码到同步播放器 */}
+              <SyncAudioPlayer
+                audioUrl={audioUrl}
+                text={text}
+                languageCode={selectedLanguageCode}
+                onDownload={downloadAudio}
+              />
 
               {!user && (
                 <div className="mt-4 p-3 bg-primary/10 rounded border border-primary/20 text-sm">
