@@ -36,15 +36,27 @@ export default function SyncAudioPlayer({ audioUrl, text, sentenceTimestamps = [
   useEffect(() => {
     if (sentenceTimestamps.length > 0) {
       console.log("Processing timestamps:", sentenceTimestamps)
-      const processed = [...sentenceTimestamps]
+
+      // 验证时间戳数据的有效性
+      const validTimestamps = sentenceTimestamps.map((stamp, index) => {
+        // 确保start是一个有效的数字
+        const start = typeof stamp.start === "number" && !isNaN(stamp.start) ? stamp.start : 0
+
+        return {
+          ...stamp,
+          start,
+        }
+      })
 
       // 计算每个句子的结束时间
+      const processed = [...validTimestamps]
       for (let i = 0; i < processed.length; i++) {
         if (i < processed.length - 1) {
           processed[i].end = processed[i + 1].start
         }
       }
 
+      console.log("Processed timestamps:", processed)
       setProcessedTimestamps(processed)
     } else if (text && isAudioLoaded) {
       // 如果没有提供时间戳，则使用备用方法
@@ -172,7 +184,7 @@ export default function SyncAudioPlayer({ audioUrl, text, sentenceTimestamps = [
       console.log(`Jumping to sentence ${index} at time ${startTime}`)
 
       // 确保时间在有效范围内
-      if (startTime >= 0 && startTime <= audio.duration) {
+      if (typeof startTime === "number" && !isNaN(startTime) && startTime >= 0 && startTime <= audio.duration) {
         // 跳转到句子的开始时间
         audio.currentTime = startTime
 
@@ -183,7 +195,16 @@ export default function SyncAudioPlayer({ audioUrl, text, sentenceTimestamps = [
           })
         }
       } else {
-        console.error(`Invalid start time: ${startTime}`)
+        console.error(`Invalid start time: ${startTime}, defaulting to beginning of audio`)
+        // 如果时间无效，默认跳转到音频开始
+        audio.currentTime = 0
+
+        // 如果没有播放，则开始播放
+        if (!isPlaying) {
+          audio.play().catch((error) => {
+            console.error("播放失败:", error)
+          })
+        }
       }
     }
   }

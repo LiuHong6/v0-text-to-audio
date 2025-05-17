@@ -132,19 +132,39 @@ export async function POST(request: Request) {
 
       // 提取时间点信息
       const timepoints = response.timepoints || []
-      console.log("Received timepoints:", JSON.stringify(timepoints))
+      console.log("从Google收到的时间点:", JSON.stringify(timepoints))
 
       // 将时间点转换为句子时间戳
       const sentenceTimestamps = sentences.map((sentence, index) => {
         const markName = `sentence_${index}`
         const timepoint = timepoints.find((tp) => tp.markName === markName)
 
+        let startTime = 0 // 默认为0以防止NaN并处理缺失数据
+
+        if (timepoint) {
+          if (typeof timepoint.timeSeconds === "number") {
+            startTime = timepoint.timeSeconds
+          } else {
+            // 如果找到时间点但timeSeconds不是有效数字（例如null, undefined），则记录警告
+            console.warn(
+              `找到了标记'${markName}'的时间点, 但'timeSeconds'不是一个有效的数字: ${timepoint.timeSeconds}。起始时间将默认为0。`,
+            )
+            // startTime保持为0
+          }
+        } else {
+          // 如果在Google TTS响应中未找到SSML中指定的标记，则记录警告
+          console.warn(`在Google TTS响应中未找到标记'${markName}'的时间点。起始时间将默认为0。`)
+          // startTime保持为0
+        }
+
         return {
           text: sentence,
-          start: timepoint ? Number(timepoint.timeSeconds) : 0,
+          start: startTime, // 这里的startTime保证是一个数字
           // 结束时间将在前端计算
         }
       })
+
+      console.log("生成并发送给客户端的sentenceTimestamps:", JSON.stringify(sentenceTimestamps))
 
       // 将音频数据上传到Supabase Storage
       const audioBuffer = Buffer.from(response.audioContent)
