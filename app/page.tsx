@@ -13,13 +13,11 @@ import { Label } from "@/components/ui/label"
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { allVoices, voicesByLanguage, getDefaultVoice } from "@/lib/voice-options"
+import { allVoices, getDefaultVoice } from "@/lib/voice-options"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import SyncAudioPlayer from "@/components/sync-audio-player"
 
@@ -182,21 +180,16 @@ export default function TextToSpeechPage() {
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="voice">语音选项</Label>
+            <Label htmlFor="voice">语言选项</Label>
             <Select value={selectedVoice} onValueChange={setSelectedVoice}>
               <SelectTrigger>
-                <SelectValue placeholder="选择语音" />
+                <SelectValue placeholder="选择语言" />
               </SelectTrigger>
               <SelectContent>
-                {Object.entries(voicesByLanguage).map(([language, voices]) => (
-                  <SelectGroup key={language}>
-                    <SelectLabel>{language}</SelectLabel>
-                    {voices.map((voice) => (
-                      <SelectItem key={voice.id} value={voice.id}>
-                        {voice.name}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
+                {allVoices.map((voice) => (
+                  <SelectItem key={voice.id} value={voice.id}>
+                    {voice.name}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>

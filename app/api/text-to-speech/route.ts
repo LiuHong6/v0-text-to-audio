@@ -222,27 +222,85 @@ export async function POST(request: Request) {
         // 导入文本处理工具来生成估算时间戳
         const { estimateTimestamps } = await import("@/utils/text-processor")
         
-        // 更精确的音频时长估算算法
+        // 多语言音频时长估算算法
         console.log("Analyzing text for duration estimation...")
         
         let estimatedDuration = 0
         const totalText = sentences.join('')
         
-        // 分析文本组成
-        const chineseChars = (totalText.match(/[\u4e00-\u9fa5]/g) || []).length
-        const englishWords = (totalText.match(/[a-zA-Z]+/g) || []).length
-        const numbers = (totalText.match(/\d+/g) || []).length
-        const punctuation = (totalText.match(/[。！？；，、：]/g) || []).length
-        const specialChars = totalText.length - chineseChars - englishWords - numbers - punctuation
+        // 根据语言代码进行不同的分析
+        const isChineseLanguage = languageCode.startsWith("cmn") || languageCode.startsWith("zh")
+        const isEnglishLanguage = languageCode.startsWith("en")
+        const isFrenchLanguage = languageCode.startsWith("fr")
+        const isJapaneseLanguage = languageCode.startsWith("ja")
+        const isPortugueseLanguage = languageCode.startsWith("pt")
         
-        console.log(`Text analysis: ${chineseChars} Chinese chars, ${englishWords} English words, ${numbers} numbers, ${punctuation} punctuation, ${specialChars} special chars`)
+        console.log(`Language detected: ${languageCode}, isChineseLanguage: ${isChineseLanguage}`)
         
-        // 基于实际TTS测试的时间估算
-        estimatedDuration += chineseChars * 0.28  // 中文字符 280ms
-        estimatedDuration += englishWords * 0.45  // 英文单词 450ms  
-        estimatedDuration += numbers * 0.35       // 数字 350ms
-        estimatedDuration += punctuation * 0.4    // 标点停顿 400ms
-        estimatedDuration += specialChars * 0.2   // 特殊字符 200ms
+        if (isChineseLanguage) {
+          // 中文语音估算
+          const chineseChars = (totalText.match(/[\u4e00-\u9fa5]/g) || []).length
+          const englishWords = (totalText.match(/[a-zA-Z]+/g) || []).length
+          const numbers = (totalText.match(/\d+/g) || []).length
+          const punctuation = (totalText.match(/[。！？；，、：]/g) || []).length
+          const specialChars = totalText.length - chineseChars - englishWords - numbers - punctuation
+          
+          estimatedDuration += chineseChars * 0.28  // 中文字符 280ms
+          estimatedDuration += englishWords * 0.45  // 英文单词 450ms  
+          estimatedDuration += numbers * 0.35       // 数字 350ms
+          estimatedDuration += punctuation * 0.4    // 标点停顿 400ms
+          estimatedDuration += specialChars * 0.2   // 特殊字符 200ms
+          
+          console.log(`Chinese analysis: ${chineseChars} chars, ${englishWords} EN words, ${punctuation} punctuation`)
+          
+        } else if (isEnglishLanguage) {
+          // 英语语音估算
+          const words = totalText.split(/\s+/).filter(word => word.length > 0).length
+          const sentences_count = (totalText.match(/[.!?]+/g) || []).length
+          
+          estimatedDuration += words * 0.35        // 英文单词 350ms
+          estimatedDuration += sentences_count * 0.5 // 句子停顿 500ms
+          
+          console.log(`English analysis: ${words} words, ${sentences_count} sentences`)
+          
+        } else if (isFrenchLanguage) {
+          // 法语语音估算 (法语通常比英语慢10%)
+          const words = totalText.split(/\s+/).filter(word => word.length > 0).length
+          const sentences_count = (totalText.match(/[.!?]+/g) || []).length
+          
+          estimatedDuration += words * 0.38        // 法语单词 380ms
+          estimatedDuration += sentences_count * 0.5 // 句子停顿 500ms
+          
+          console.log(`French analysis: ${words} words, ${sentences_count} sentences`)
+          
+        } else if (isJapaneseLanguage) {
+          // 日语语音估算
+          const japaneseChars = (totalText.match(/[\u3040-\u309f\u30a0-\u30ff\u4e00-\u9faf]/g) || []).length
+          const englishWords = (totalText.match(/[a-zA-Z]+/g) || []).length
+          const punctuation = (totalText.match(/[。！？；，、]/g) || []).length
+          
+          estimatedDuration += japaneseChars * 0.32 // 日语字符 320ms
+          estimatedDuration += englishWords * 0.45  // 英文单词 450ms
+          estimatedDuration += punctuation * 0.4    // 标点停顿 400ms
+          
+          console.log(`Japanese analysis: ${japaneseChars} chars, ${englishWords} EN words, ${punctuation} punctuation`)
+          
+        } else if (isPortugueseLanguage) {
+          // 葡萄牙语语音估算
+          const words = totalText.split(/\s+/).filter(word => word.length > 0).length
+          const sentences_count = (totalText.match(/[.!?]+/g) || []).length
+          
+          estimatedDuration += words * 0.40        // 葡萄牙语单词 400ms
+          estimatedDuration += sentences_count * 0.5 // 句子停顿 500ms
+          
+          console.log(`Portuguese analysis: ${words} words, ${sentences_count} sentences`)
+          
+        } else {
+          // 默认估算 (按英语处理)
+          const words = totalText.split(/\s+/).filter(word => word.length > 0).length
+          estimatedDuration += words * 0.35
+          console.log(`Default analysis: ${words} words`)
+        }
         
         // 句子间自然停顿
         estimatedDuration += (sentences.length - 1) * 0.4
@@ -255,7 +313,7 @@ export async function POST(request: Request) {
         // 合理的边界限制
         estimatedDuration = Math.max(3, Math.min(180, estimatedDuration))
         
-        console.log(`Estimating duration: ${estimatedDuration}s for ${totalCharacters} characters`)
+        console.log(`Estimating duration: ${estimatedDuration}s for ${totalText.length} characters`)
         
         sentenceTimestamps = estimateTimestamps(sentences, estimatedDuration).map(ts => ({
           text: ts.text,
