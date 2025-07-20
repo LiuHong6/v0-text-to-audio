@@ -104,5 +104,5 @@ export const voicesByLanguage = {
   日语: japaneseVoices,
 }
 
-// 获取默认语音
-export const getDefaultVoice = (): VoiceOption => chineseVoices[0]
+// 获取默认语音 - 使用WaveNet以支持timepoints
+export const getDefaultVoice = (): VoiceOption => chineseVoices[1] // 使用cmn-CN-Wavenet-A而不是Standard-A
