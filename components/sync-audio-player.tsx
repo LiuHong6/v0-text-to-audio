@@ -154,33 +154,27 @@ export default function SyncAudioPlayer({ audioUrl, text, sentenceTimestamps = [
       setCurrentTime(0)
       setCurrentSentenceIndex(-1)
       setIsPlaying(false)
-      console.log("Audio URL changed, resetting states:", audioUrl)
     }
   }, [audioUrl])
 
   // 调试信息
   useEffect(() => {
-    console.log("Received sentenceTimestamps:", sentenceTimestamps)
   }, [sentenceTimestamps])
 
   // 处理时间戳，使用改进的验证和处理逻辑
   useEffect(() => {
     if (sentenceTimestamps.length > 0) {
-      console.log("Processing timestamps:", sentenceTimestamps)
 
       // 使用统一的时间戳处理函数
       import("@/utils/text-processor").then(({ processTimestamps }) => {
         const processed = processTimestamps(sentenceTimestamps, duration || undefined)
-        console.log("Processed timestamps:", processed)
         setProcessedTimestamps(processed)
       })
     } else if (text && isAudioLoaded) {
       // 如果没有提供时间戳，则使用备用方法
-      console.log("No timestamps provided, using fallback method")
       import("@/utils/text-processor").then(({ splitIntoSentences, estimateTimestamps }) => {
         const sentences = splitIntoSentences(text)
         const estimatedTimestamps = estimateTimestamps(sentences, duration || text.length * 0.1)
-        console.log("Estimated timestamps:", estimatedTimestamps)
         setProcessedTimestamps(estimatedTimestamps)
       })
     }
@@ -192,7 +186,6 @@ export default function SyncAudioPlayer({ audioUrl, text, sentenceTimestamps = [
     if (!audio) return
 
     const handleLoadStart = () => {
-      console.log("Audio load started")
       setAudioLoadingState('loading')
       setAudioLoadError(null)
     }
@@ -200,10 +193,8 @@ export default function SyncAudioPlayer({ audioUrl, text, sentenceTimestamps = [
     const handleLoadedMetadata = () => {
       try {
         const actualDuration = audio.duration
-        console.log("Audio metadata loaded, duration:", actualDuration)
         
         if (isNaN(actualDuration) || actualDuration <= 0) {
-          console.warn("Invalid audio duration:", actualDuration)
           setAudioLoadError("音频时长无效")
           setAudioLoadingState('error')
           return
@@ -224,18 +215,14 @@ export default function SyncAudioPlayer({ audioUrl, text, sentenceTimestamps = [
             const durationDiff = Math.abs(actualDuration - estimatedDuration)
             const diffPercentage = estimatedDuration > 0 ? durationDiff / estimatedDuration : 1
             
-            console.log(`Duration comparison: estimated=${estimatedDuration}s, actual=${actualDuration}s, diff=${diffPercentage.toFixed(2)}`)
             
             // 如果差异超过20%，重新计算时间戳
             if (diffPercentage > 0.2) {
-              console.log("🔄 Recalibrating timestamps due to significant duration difference")
               const sentences = processedTimestamps.map(ts => ts.text)
               const recalibratedTimestamps = estimateTimestamps(sentences, actualDuration)
-              console.log("Recalibrated timestamps:", recalibratedTimestamps)
               setProcessedTimestamps(recalibratedTimestamps)
             } else {
               // 小幅调整：按比例缩放现有时间戳
-              console.log("🔧 Fine-tuning timestamps with scaling")
               const scaleFactor = actualDuration / estimatedDuration
               const scaledTimestamps = processedTimestamps.map(ts => ({
                 ...ts,
@@ -248,7 +235,6 @@ export default function SyncAudioPlayer({ audioUrl, text, sentenceTimestamps = [
                 scaledTimestamps[scaledTimestamps.length - 1].end = actualDuration
               }
               
-              console.log("Scaled timestamps:", scaledTimestamps)
               setProcessedTimestamps(scaledTimestamps)
             }
           })
@@ -261,7 +247,6 @@ export default function SyncAudioPlayer({ audioUrl, text, sentenceTimestamps = [
     }
 
     const handleCanPlay = () => {
-      console.log("Audio can play")
       setIsAudioLoaded(true)
     }
 
@@ -273,7 +258,6 @@ export default function SyncAudioPlayer({ audioUrl, text, sentenceTimestamps = [
     }
 
     const handleStalled = () => {
-      console.warn("Audio loading stalled")
       // 不改变状态，只记录警告
     }
 
@@ -283,7 +267,6 @@ export default function SyncAudioPlayer({ audioUrl, text, sentenceTimestamps = [
         const duration = audio.duration
         if (duration > 0) {
           const bufferedPercent = (bufferedEnd / duration) * 100
-          console.log(`Audio buffered: ${bufferedPercent.toFixed(1)}%`)
         }
       }
     }
@@ -313,7 +296,6 @@ export default function SyncAudioPlayer({ audioUrl, text, sentenceTimestamps = [
   useEffect(() => {
     const audio = audioRef.current
     if (!audio) {
-      console.warn("Audio element not found, skipping event listeners setup")
       return
     }
 
@@ -323,7 +305,6 @@ export default function SyncAudioPlayer({ audioUrl, text, sentenceTimestamps = [
           // 使用节流的时间更新函数
           throttledTimeUpdate(audio.currentTime)
         } else {
-          console.warn("Invalid audio currentTime:", audio.currentTime)
         }
       } catch (error) {
         console.error("Error in handleTimeUpdate:", error)
@@ -389,7 +370,6 @@ export default function SyncAudioPlayer({ audioUrl, text, sentenceTimestamps = [
 
     // 检查音频加载状态
     if (audioLoadingState === 'loading') {
-      console.warn("Audio is still loading, cannot play yet")
       return
     }
 
@@ -399,7 +379,6 @@ export default function SyncAudioPlayer({ audioUrl, text, sentenceTimestamps = [
     }
 
     if (!isAudioLoaded) {
-      console.warn("Audio is not ready for playback")
       return
     }
 
@@ -409,7 +388,6 @@ export default function SyncAudioPlayer({ audioUrl, text, sentenceTimestamps = [
       } else {
         // 确保音频元数据已加载
         if (!audioMetadataLoaded) {
-          console.warn("Audio metadata not loaded, waiting...")
           audio.load() // 重新加载音频
           return
         }
@@ -420,9 +398,7 @@ export default function SyncAudioPlayer({ audioUrl, text, sentenceTimestamps = [
           
           // 尝试重新加载音频
           if (error.name === 'NotAllowedError') {
-            console.log("Playback was prevented by browser policy")
           } else {
-            console.log("Attempting to reload audio...")
             audio.load()
           }
         })
@@ -437,7 +413,6 @@ export default function SyncAudioPlayer({ audioUrl, text, sentenceTimestamps = [
   const skipToPreviousSentence = () => {
     try {
       if (currentSentenceIndex <= 0 || processedTimestamps.length === 0) {
-        console.warn("Cannot skip to previous sentence: at beginning or no timestamps available")
         return
       }
 
@@ -452,7 +427,6 @@ export default function SyncAudioPlayer({ audioUrl, text, sentenceTimestamps = [
   const skipToNextSentence = () => {
     try {
       if (currentSentenceIndex >= processedTimestamps.length - 1 || processedTimestamps.length === 0) {
-        console.warn("Cannot skip to next sentence: at end or no timestamps available")
         return
       }
 
@@ -473,7 +447,6 @@ export default function SyncAudioPlayer({ audioUrl, text, sentenceTimestamps = [
       }
 
       if (index < 0 || index >= processedTimestamps.length) {
-        console.warn(`Sentence index ${index} is out of range (0-${processedTimestamps.length - 1})`)
         return
       }
 
@@ -490,11 +463,9 @@ export default function SyncAudioPlayer({ audioUrl, text, sentenceTimestamps = [
       }
 
       const startTime = sentence.start
-      console.log(`Jumping to sentence ${index} at time ${startTime}`)
 
       // 验证音频元素状态
       if (isNaN(audio.duration) || audio.duration === 0) {
-        console.warn("Audio duration not available, jumping anyway")
       }
 
       // 确保时间在有效范围内
@@ -506,7 +477,6 @@ export default function SyncAudioPlayer({ audioUrl, text, sentenceTimestamps = [
           // 如果音频还在加载，直接设置时间
           audio.currentTime = startTime
         } else {
-          console.warn(`Start time ${startTime} exceeds audio duration ${audio.duration}, clamping to duration`)
           audio.currentTime = Math.min(startTime, audio.duration)
         }
 

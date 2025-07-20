@@ -98,10 +98,8 @@ export default function TextToSpeechPage() {
 
       // 设置句子时间戳（如果有）
       if (data.sentenceTimestamps && Array.isArray(data.sentenceTimestamps)) {
-        console.log("Received sentence timestamps:", data.sentenceTimestamps)
         setSentenceTimestamps(data.sentenceTimestamps)
       } else {
-        console.log("No sentence timestamps received")
       }
 
       // 检查是否使用了备用音频
