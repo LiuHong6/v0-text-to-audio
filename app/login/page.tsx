@@ -27,15 +27,15 @@ export default function LoginPage() {
     try {
       await signIn(email, password)
       toast({
-        title: "登录成功",
-        description: "欢迎回来！",
+        title: "Login Successful",
+        description: "Welcome back!",
       })
       router.push("/dashboard")
     } catch (error) {
       console.error("Login error:", error)
       toast({
-        title: "登录失败",
-        description: "邮箱或密码错误，请重试。",
+        title: "Login Failed",
+        description: "Invalid email or password. Please try again.",
         variant: "destructive",
       })
     } finally {
@@ -47,13 +47,13 @@ export default function LoginPage() {
     <div className="container flex items-center justify-center min-h-[calc(100vh-4rem)] py-10">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle className="text-2xl">登录</CardTitle>
-          <CardDescription>输入您的邮箱和密码登录账户</CardDescription>
+          <CardTitle className="text-2xl">Login</CardTitle>
+          <CardDescription>Enter your email and password to login to your account</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">邮箱</Label>
+              <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 type="email"
@@ -65,9 +65,9 @@ export default function LoginPage() {
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="password">密码</Label>
+                <Label htmlFor="password">Password</Label>
                 <Link href="/forgot-password" className="text-sm text-primary hover:underline">
-                  忘记密码？
+                  Forgot password?
                 </Link>
               </div>
               <Input
@@ -79,13 +79,13 @@ export default function LoginPage() {
               />
             </div>
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "登录中..." : "登录"}
+              {isLoading ? "Logging in..." : "Login"}
             </Button>
           </form>
           <div className="mt-4 text-center text-sm">
-            还没有账户？{" "}
+            Don't have an account?{" "}
             <Link href="/register" className="text-primary hover:underline">
-              注册
+              Register
             </Link>
           </div>
         </CardContent>

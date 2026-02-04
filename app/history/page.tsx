@@ -44,8 +44,8 @@ export default function HistoryPage() {
       } catch (error) {
         console.error("Error fetching history:", error)
         toast({
-          title: "获取历史记录失败",
-          description: "请稍后重试。",
+          title: "Failed to fetch history",
+          description: "Please try again later.",
           variant: "destructive",
         })
       } finally {
@@ -64,14 +64,14 @@ export default function HistoryPage() {
 
       setHistory(history.filter((item) => item.id !== id))
       toast({
-        title: "删除成功",
-        description: "历史记录已删除。",
+        title: "Delete Successful",
+        description: "History item has been deleted.",
       })
     } catch (error) {
       console.error("Error deleting history item:", error)
       toast({
-        title: "删除失败",
-        description: "请稍后重试。",
+        title: "Delete Failed",
+        description: "Please try again later.",
         variant: "destructive",
       })
     }
@@ -84,7 +84,7 @@ export default function HistoryPage() {
   const downloadAudio = (item: AudioHistoryItem) => {
     const link = document.createElement("a")
     link.href = item.audio_url
-    link.download = `${item.title || "语音"}_${new Date(item.created_at).toISOString().slice(0, 10)}.mp3`
+    link.download = `${item.title || "speech"}_${new Date(item.created_at).toISOString().slice(0, 10)}.mp3`
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
@@ -105,7 +105,7 @@ export default function HistoryPage() {
   return (
     <ProtectedRoute>
       <div className="container py-10">
-        <h1 className="text-3xl font-bold mb-6">历史记录</h1>
+        <h1 className="text-3xl font-bold mb-6">History</h1>
 
         {isLoading ? (
           <div className="grid gap-4">
@@ -125,9 +125,9 @@ export default function HistoryPage() {
         ) : history.length === 0 ? (
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-10">
-              <p className="text-muted-foreground mb-4">您还没有任何历史记录</p>
+              <p className="text-muted-foreground mb-4">You don't have any history yet</p>
               <Button asChild>
-                <a href="/">创建您的第一个语音</a>
+                <a href="/">Create your first speech</a>
               </Button>
             </CardContent>
           </Card>
@@ -137,7 +137,7 @@ export default function HistoryPage() {
               <Card key={item.id} className="overflow-hidden">
                 <CardHeader className="pb-2">
                   <CardTitle className="flex justify-between items-center">
-                    <span className="truncate">{item.title || "未命名语音"}</span>
+                    <span className="truncate">{item.title || "Untitled Speech"}</span>
                     <Button variant="ghost" size="icon" onClick={() => deleteHistoryItem(item.id)}>
                       <Trash2 className="h-4 w-4 text-muted-foreground" />
                     </Button>
@@ -165,7 +165,7 @@ export default function HistoryPage() {
                     <div className="flex justify-between items-center">
                       <audio src={item.audio_url} controls className="w-full h-8" />
                       <Button variant="ghost" size="sm" className="ml-2" onClick={() => toggleExpandItem(item.id)}>
-                        展开
+                        Expand
                       </Button>
                     </div>
                   )}

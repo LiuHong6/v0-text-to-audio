@@ -6,52 +6,52 @@ export type VoiceOption = {
   languageName: string
 }
 
-// 支持timepoints的语言选项 - 每种语言一个选项
+// Languages with timepoints support - one option per language
 export const supportedLanguages: VoiceOption[] = [
   {
     id: "cmn-CN-Wavenet-A",
-    name: "中文",
+    name: "Chinese",
     gender: "FEMALE",
     languageCode: "cmn-CN",
-    languageName: "中文",
+    languageName: "Chinese",
   },
   {
     id: "en-US-Wavenet-A",
-    name: "英语",
+    name: "English",
     gender: "FEMALE",
     languageCode: "en-US",
-    languageName: "英语",
+    languageName: "English",
   },
   {
     id: "fr-FR-Wavenet-A",
-    name: "法语",
+    name: "French",
     gender: "FEMALE",
     languageCode: "fr-FR",
-    languageName: "法语",
+    languageName: "French",
   },
   {
     id: "ja-JP-Wavenet-A",
-    name: "日语",
+    name: "Japanese",
     gender: "FEMALE",
     languageCode: "ja-JP",
-    languageName: "日语",
+    languageName: "Japanese",
   },
   {
     id: "pt-BR-Wavenet-A",
-    name: "葡萄牙语",
+    name: "Portuguese",
     gender: "FEMALE",
     languageCode: "pt-BR",
-    languageName: "葡萄牙语",
+    languageName: "Portuguese",
   },
 ]
 
-// 所有语言选项 (保持向后兼容)
+// All language options (backward compatibility)
 export const allVoices: VoiceOption[] = supportedLanguages
 
-// 不再需要分组，直接使用语言列表
+// No longer need grouping, use language list directly
 export const voicesByLanguage = {
-  // 保持空对象以维持API兼容性，但不再使用
+  // Keep empty object for API compatibility, but no longer used
 }
 
-// 获取默认语言 - 使用WaveNet以支持timepoints
-export const getDefaultVoice = (): VoiceOption => supportedLanguages[0] // 默认使用中文
+// Get default language - use WaveNet for timepoints support
+export const getDefaultVoice = (): VoiceOption => supportedLanguages[1] // Default to English

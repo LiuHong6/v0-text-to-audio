@@ -45,8 +45,8 @@ export default function SettingsPage() {
       } catch (error) {
         console.error("Error fetching user profile:", error)
         toast({
-          title: "获取用户资料失败",
-          description: "请稍后重试。",
+          title: "Failed to fetch user profile",
+          description: "Please try again later.",
           variant: "destructive",
         })
       } finally {
@@ -75,14 +75,14 @@ export default function SettingsPage() {
       if (error) throw error
 
       toast({
-        title: "设置已保存",
-        description: "您的个人资料已更新。",
+        title: "Settings Saved",
+        description: "Your profile has been updated.",
       })
     } catch (error) {
       console.error("Error saving settings:", error)
       toast({
-        title: "保存设置失败",
-        description: "请稍后重试。",
+        title: "Failed to save settings",
+        description: "Please try again later.",
         variant: "destructive",
       })
     } finally {
@@ -93,12 +93,12 @@ export default function SettingsPage() {
   return (
     <ProtectedRoute>
       <div className="container max-w-3xl py-10">
-        <h1 className="text-3xl font-bold mb-6">账户设置</h1>
+        <h1 className="text-3xl font-bold mb-6">Account Settings</h1>
 
         <Card>
           <CardHeader>
-            <CardTitle>个人资料</CardTitle>
-            <CardDescription>更新您的个人资料和偏好设置</CardDescription>
+            <CardTitle>Profile</CardTitle>
+            <CardDescription>Update your profile and preferences</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {isLoading ? (
@@ -110,26 +110,26 @@ export default function SettingsPage() {
             ) : (
               <>
                 <div className="space-y-2">
-                  <Label htmlFor="email">邮箱</Label>
+                  <Label htmlFor="email">Email</Label>
                   <Input id="email" value={user?.email || ""} disabled />
-                  <p className="text-sm text-muted-foreground">您的邮箱地址不能更改</p>
+                  <p className="text-sm text-muted-foreground">Your email address cannot be changed</p>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="displayName">显示名称</Label>
+                  <Label htmlFor="displayName">Display Name</Label>
                   <Input
                     id="displayName"
-                    placeholder="输入您的显示名称"
+                    placeholder="Enter your display name"
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="preferredVoice">默认语音</Label>
+                  <Label htmlFor="preferredVoice">Default Voice</Label>
                   <Select value={preferredVoice} onValueChange={setPreferredVoice}>
                     <SelectTrigger>
-                      <SelectValue placeholder="选择默认语音" />
+                      <SelectValue placeholder="Select default voice" />
                     </SelectTrigger>
                     <SelectContent>
                       {Object.entries(voicesByLanguage).map(([language, voices]) => (
@@ -144,11 +144,11 @@ export default function SettingsPage() {
                       ))}
                     </SelectContent>
                   </Select>
-                  <p className="text-sm text-muted-foreground">此语音将作为您的默认语音选项</p>
+                  <p className="text-sm text-muted-foreground">This voice will be used as your default voice option</p>
                 </div>
 
                 <Button onClick={saveSettings} disabled={isSaving}>
-                  {isSaving ? "保存中..." : "保存设置"}
+                  {isSaving ? "Saving..." : "Save Settings"}
                 </Button>
               </>
             )}

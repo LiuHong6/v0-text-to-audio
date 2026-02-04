@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import { createServerSupabaseClient } from "@/lib/supabase"
 import { splitIntoSentences } from "@/utils/text-processor"
 
-// 从环境变量中获取Google凭证
+// [comment removed]
 const getGoogleCredentials = () => {
   const credsJson = process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON
   if (!credsJson || credsJson === "{}") {
@@ -12,7 +12,7 @@ const getGoogleCredentials = () => {
 
   try {
     const parsedCreds = JSON.parse(credsJson)
-    // 基本验证，检查必要字段
+    // [comment removed]
     if (!parsedCreds.project_id) {
       console.error("Parsed Google credentials seem invalid (missing project_id).")
       throw new Error("Parsed Google credentials seem invalid.")
@@ -21,7 +21,7 @@ const getGoogleCredentials = () => {
     return parsedCreds
   } catch (error) {
     console.error("Failed to parse Google credentials JSON string:", error)
-    // 打印一部分JSON以帮助调试（避免打印完整凭证）
+    // [comment removed]
     if (credsJson) {
       console.error(
         "Problematic GOOGLE_APPLICATION_CREDENTIALS_JSON (first 50 chars):",
@@ -33,13 +33,13 @@ const getGoogleCredentials = () => {
 }
 
 
-// 为SSML标记添加句子标记
+// [comment removed]
 function addSentenceMarks(text: string): { ssml: string; sentences: string[] } {
   const sentences = splitIntoSentences(text)
   let ssml = "<speak>"
 
   sentences.forEach((sentence, index) => {
-    // 在每个句子前添加标记
+    // [comment removed]
     ssml += `<mark name="sentence_${index}"/>${sentence} `
   })
 
@@ -49,15 +49,15 @@ function addSentenceMarks(text: string): { ssml: string; sentences: string[] } {
 
 export async function POST(request: Request) {
   try {
-    // 解析请求
+    // [comment removed]
     let requestBody
     try {
       requestBody = await request.json()
     } catch (error) {
       return NextResponse.json(
         {
-          error: "无效的请求格式",
-          details: "请求必须是有效的JSON格式",
+          error: "Invalid request format",
+          details: "Request must be valid JSON format",
         },
         { status: 400 },
       )
@@ -66,32 +66,32 @@ export async function POST(request: Request) {
     const { text, voice = "cmn-CN-Wavenet-A", languageCode = "cmn-CN" } = requestBody
 
     if (!text || typeof text !== "string") {
-      return NextResponse.json({ error: "文本内容不能为空" }, { status: 400 })
+      return NextResponse.json({ error: "Text content cannot be empty" }, { status: 400 })
     }
 
-    // 获取Supabase客户端
+    // [comment removed]
     const supabase = createServerSupabaseClient()
 
     try {
-      // 获取Google凭证
+      // [comment removed]
       const credentials = getGoogleCredentials()
 
-      // 动态导入TextToSpeechClient v1beta1以支持timepoints功能
+      // [comment removed]
       const { v1beta1 } = await import("@google-cloud/text-to-speech")
 
-      // 初始化Google TTS客户端 (使用beta版本以支持timepoints)
+      // [comment removed]
       const ttsClient = new v1beta1.TextToSpeechClient({ credentials })
 
       console.log(`Calling Google TTS API with voice: ${voice}, language: ${languageCode}`)
       
-      // 检查语音是否支持时间点功能
+      // [comment removed]
       if (voice.includes("Wavenet") || voice.includes("Neural2")) {
         console.log("✅ Using advanced voice that should support timepoints:", voice)
       } else {
         console.warn("⚠️ Using Standard voice - timepoints support may be limited:", voice)
       }
 
-      // 准备SSML文本，添加句子标记
+      // [comment removed]
       const { ssml, sentences } = addSentenceMarks(text)
 
       console.log("Generated SSML:", ssml.substring(0, 200) + "...")
@@ -99,8 +99,8 @@ export async function POST(request: Request) {
       console.log("Number of sentences:", sentences.length)
       console.log("Number of SSML marks:", (ssml.match(/<mark name=/g) || []).length)
 
-      // 根据Google官方文档重新构建请求
-      // enableTimePointing应该在顶层，不在audioConfig内
+      // [comment removed]
+      // enableTimePointing should be at top level, not in audioConfig
       const synthesizeRequest = {
         input: { ssml },
         voice: {
@@ -110,13 +110,13 @@ export async function POST(request: Request) {
         audioConfig: {
           audioEncoding: "MP3",
         },
-        // timepoints功能配置在顶层
+        // timepoints functionality configured at top level
         enableTimePointing: ["SSML_MARK"],
       }
       
       console.log("TTS Request config:", JSON.stringify(synthesizeRequest, null, 2))
       
-      // 尝试使用v1beta1的正确枚举值
+      // [comment removed]
       let response
       try {
         const requestWithCorrectEnum = {
@@ -128,7 +128,7 @@ export async function POST(request: Request) {
           audioConfig: {
             audioEncoding: "MP3",
           },
-          enableTimePointing: [1], // SSML_MARK的枚举值
+          enableTimePointing: [1], // SSML_MARK enum value
         }
         
         console.log("Trying with enum value:", JSON.stringify(requestWithCorrectEnum, null, 2))
@@ -144,7 +144,7 @@ export async function POST(request: Request) {
       } catch (enumError) {
         console.warn("Enum approach failed, trying string approach:", enumError)
         
-        // 回退到字符串方式
+        // [comment removed]
         const [stringResponse] = await ttsClient.synthesizeSpeech(synthesizeRequest)
         
         if (!stringResponse.audioContent) {
@@ -154,12 +154,12 @@ export async function POST(request: Request) {
         response = stringResponse
       }
 
-      // 提取时间点信息
+      // [comment removed]
       const timepoints = response.timepoints || []
-      console.log("从Google收到的时间点:", JSON.stringify(timepoints))
+      console.log("Timepoints received from Google:", JSON.stringify(timepoints))
       console.log("Response keys:", Object.keys(response))
       
-      // 详细分析响应结构
+      // [comment removed]
       if (timepoints.length === 0) {
         console.warn("⚠️ No timepoints in response. Checking response structure...")
         console.log("Response audioContent exists:", !!response.audioContent)
@@ -169,23 +169,23 @@ export async function POST(request: Request) {
         console.log("✅ Successfully received", timepoints.length, "timepoints")
       }
 
-      // 将时间点转换为句子时间戳，使用改进的验证逻辑
+      // [comment removed]
       let sentenceTimestamps
       
       if (timepoints.length > 0) {
-        // 如果有时间点数据，使用精确的时间戳
+        // [comment removed]
         console.log("Using timepoints from Google TTS")
         sentenceTimestamps = sentences.map((sentence, index) => {
           const markName = `sentence_${index}`
           const timepoint = timepoints.find((tp) => tp.markName === markName)
 
-          let startTime = 0 // 默认为0以防止NaN并处理缺失数据
+          let startTime = 0 // [comment removed]
 
           if (timepoint) {
             if (typeof timepoint.timeSeconds === "number" && !isNaN(timepoint.timeSeconds) && timepoint.timeSeconds >= 0) {
               startTime = timepoint.timeSeconds
             } else {
-              // 如果找到时间点但timeSeconds不是有效数字，记录详细错误信息
+              // [comment removed]
               console.error(
                 `Found timepoint for mark '${markName}' but timeSeconds is invalid:`,
                 {
@@ -195,20 +195,20 @@ export async function POST(request: Request) {
                   isNegative: typeof timepoint.timeSeconds === "number" && timepoint.timeSeconds < 0
                 }
               )
-              // startTime保持为0
+              // startTime remains 0
             }
           } else {
-            // 如果在Google TTS响应中未找到SSML中指定的标记，记录警告
+            // [comment removed]
             console.warn(`Timepoint not found for mark '${markName}' in Google TTS response. Using default start time 0.`)
           }
 
-          // 验证生成的时间戳对象
+          // [comment removed]
           const timestamp = {
             text: sentence.trim(),
             start: startTime,
           }
 
-          // 基本验证
+          // [comment removed]
           if (!timestamp.text || timestamp.text.length === 0) {
             console.error(`Empty sentence text at index ${index}, this may cause sync issues`)
           }
@@ -216,19 +216,19 @@ export async function POST(request: Request) {
           return timestamp
         })
       } else {
-        // 如果没有时间点数据，生成估算的时间戳
+        // [comment removed]
         console.warn("No timepoints received from Google TTS, generating estimated timestamps")
         
-        // 导入文本处理工具来生成估算时间戳
+        // [comment removed]
         const { estimateTimestamps } = await import("@/utils/text-processor")
         
-        // 多语言音频时长估算算法
+        // [comment removed]
         console.log("Analyzing text for duration estimation...")
         
         let estimatedDuration = 0
         const totalText = sentences.join('')
         
-        // 根据语言代码进行不同的分析
+        // [comment removed]
         const isChineseLanguage = languageCode.startsWith("cmn") || languageCode.startsWith("zh")
         const isEnglishLanguage = languageCode.startsWith("en")
         const isFrenchLanguage = languageCode.startsWith("fr")
@@ -238,79 +238,79 @@ export async function POST(request: Request) {
         console.log(`Language detected: ${languageCode}, isChineseLanguage: ${isChineseLanguage}`)
         
         if (isChineseLanguage) {
-          // 中文语音估算
+          // [comment removed]
           const chineseChars = (totalText.match(/[\u4e00-\u9fa5]/g) || []).length
           const englishWords = (totalText.match(/[a-zA-Z]+/g) || []).length
           const numbers = (totalText.match(/\d+/g) || []).length
           const punctuation = (totalText.match(/[。！？；，、：]/g) || []).length
           const specialChars = totalText.length - chineseChars - englishWords - numbers - punctuation
           
-          estimatedDuration += chineseChars * 0.28  // 中文字符 280ms
-          estimatedDuration += englishWords * 0.45  // 英文单词 450ms  
-          estimatedDuration += numbers * 0.35       // 数字 350ms
-          estimatedDuration += punctuation * 0.4    // 标点停顿 400ms
-          estimatedDuration += specialChars * 0.2   // 特殊字符 200ms
+          estimatedDuration += chineseChars * 0.28  // [comment removed]
+          estimatedDuration += englishWords * 0.45  // [comment removed]
+          estimatedDuration += numbers * 0.35       // [comment removed]
+          estimatedDuration += punctuation * 0.4    // [comment removed]
+          estimatedDuration += specialChars * 0.2   // [comment removed]
           
           console.log(`Chinese analysis: ${chineseChars} chars, ${englishWords} EN words, ${punctuation} punctuation`)
           
         } else if (isEnglishLanguage) {
-          // 英语语音估算
+          // [comment removed]
           const words = totalText.split(/\s+/).filter(word => word.length > 0).length
           const sentences_count = (totalText.match(/[.!?]+/g) || []).length
           
-          estimatedDuration += words * 0.35        // 英文单词 350ms
-          estimatedDuration += sentences_count * 0.5 // 句子停顿 500ms
+          estimatedDuration += words * 0.35        // [comment removed]
+          estimatedDuration += sentences_count * 0.5 // [comment removed]
           
           console.log(`English analysis: ${words} words, ${sentences_count} sentences`)
           
         } else if (isFrenchLanguage) {
-          // 法语语音估算 (法语通常比英语慢10%)
+          // [comment removed]
           const words = totalText.split(/\s+/).filter(word => word.length > 0).length
           const sentences_count = (totalText.match(/[.!?]+/g) || []).length
           
-          estimatedDuration += words * 0.38        // 法语单词 380ms
-          estimatedDuration += sentences_count * 0.5 // 句子停顿 500ms
+          estimatedDuration += words * 0.38        // [comment removed]
+          estimatedDuration += sentences_count * 0.5 // [comment removed]
           
           console.log(`French analysis: ${words} words, ${sentences_count} sentences`)
           
         } else if (isJapaneseLanguage) {
-          // 日语语音估算
+          // [comment removed]
           const japaneseChars = (totalText.match(/[\u3040-\u309f\u30a0-\u30ff\u4e00-\u9faf]/g) || []).length
           const englishWords = (totalText.match(/[a-zA-Z]+/g) || []).length
           const punctuation = (totalText.match(/[。！？；，、]/g) || []).length
           
-          estimatedDuration += japaneseChars * 0.32 // 日语字符 320ms
-          estimatedDuration += englishWords * 0.45  // 英文单词 450ms
-          estimatedDuration += punctuation * 0.4    // 标点停顿 400ms
+          estimatedDuration += japaneseChars * 0.32 // [comment removed]
+          estimatedDuration += englishWords * 0.45  // [comment removed]
+          estimatedDuration += punctuation * 0.4    // [comment removed]
           
           console.log(`Japanese analysis: ${japaneseChars} chars, ${englishWords} EN words, ${punctuation} punctuation`)
           
         } else if (isPortugueseLanguage) {
-          // 葡萄牙语语音估算
+          // [comment removed]
           const words = totalText.split(/\s+/).filter(word => word.length > 0).length
           const sentences_count = (totalText.match(/[.!?]+/g) || []).length
           
-          estimatedDuration += words * 0.40        // 葡萄牙语单词 400ms
-          estimatedDuration += sentences_count * 0.5 // 句子停顿 500ms
+          estimatedDuration += words * 0.40        // [comment removed]
+          estimatedDuration += sentences_count * 0.5 // [comment removed]
           
           console.log(`Portuguese analysis: ${words} words, ${sentences_count} sentences`)
           
         } else {
-          // 默认估算 (按英语处理)
+          // [comment removed]
           const words = totalText.split(/\s+/).filter(word => word.length > 0).length
           estimatedDuration += words * 0.35
           console.log(`Default analysis: ${words} words`)
         }
         
-        // 句子间自然停顿
+        // [comment removed]
         estimatedDuration += (sentences.length - 1) * 0.4
         
-        // WaveNet语音通常比Standard慢约15%
+        // WaveNet voices are usually ~15% slower than Standard
         if (voice.includes("Wavenet")) {
           estimatedDuration *= 1.15
         }
         
-        // 合理的边界限制
+        // [comment removed]
         estimatedDuration = Math.max(3, Math.min(180, estimatedDuration))
         
         console.log(`Estimating duration: ${estimatedDuration}s for ${totalText.length} characters`)
@@ -318,15 +318,15 @@ export async function POST(request: Request) {
         sentenceTimestamps = estimateTimestamps(sentences, estimatedDuration).map(ts => ({
           text: ts.text,
           start: ts.start,
-          // 不包含end时间，让前端计算
+          // [comment removed]
         }))
         
         console.log("Generated estimated timestamps:", sentenceTimestamps)
       }
 
-      console.log("生成并发送给客户端的sentenceTimestamps:", JSON.stringify(sentenceTimestamps))
+      console.log("Generated sentenceTimestamps sent to client:", JSON.stringify(sentenceTimestamps))
 
-      // 验证生成的时间戳数据
+      // [comment removed]
       const validTimestamps = sentenceTimestamps.filter((ts, index) => {
         if (!ts.text || ts.text.trim().length === 0) {
           console.warn(`Empty sentence text at index ${index}`)
@@ -343,7 +343,7 @@ export async function POST(request: Request) {
         console.warn(`Filtered out ${sentenceTimestamps.length - validTimestamps.length} invalid timestamps`)
       }
 
-      // 将音频数据上传到Supabase Storage
+      // [comment removed]
       let audioBuffer
       try {
         audioBuffer = Buffer.from(response.audioContent)
@@ -363,7 +363,7 @@ export async function POST(request: Request) {
         throw new Error(`Failed to upload audio: ${error.message}`)
       }
 
-      // 获取公共URL
+      // [comment removed]
       const { data: urlData } = supabase.storage.from("audio-files").getPublicUrl(fileName)
 
       if (!urlData || !urlData.publicUrl) {
@@ -379,27 +379,27 @@ export async function POST(request: Request) {
     } catch (googleError) {
       console.error("Google TTS error:", googleError)
 
-      // 如果是Google API错误，尝试使用备用音频
+      // [comment removed]
       console.log("Falling back to sample audio due to Google TTS error")
 
-      // 使用示例音频作为备用
+      // [comment removed]
       const fallbackAudioUrl = "https://audio-samples.github.io/samples/mp3/blizzard_biased/sample-1.mp3"
 
-      // 记录到控制台但返回成功响应，使用备用音频
+      // [comment removed]
       return NextResponse.json({
         audioUrl: fallbackAudioUrl,
         success: true,
         fallback: true,
-        message: "使用示例音频（Google TTS暂时不可用）",
+        message: "Using sample audio (Google TTS temporarily unavailable)",
       })
     }
   } catch (error) {
-    // 确保所有错误都被捕获并返回有效的JSON
+    // [comment removed]
     console.error("Text-to-speech general error:", error)
 
-    // 安全地提取错误消息
-    let errorMessage = "处理请求时出错"
-    let errorDetails = "未知错误"
+    // [comment removed]
+    let errorMessage = "Error processing request"
+    let errorDetails = "Unknown error"
 
     if (error instanceof Error) {
       errorMessage = error.message || errorMessage
@@ -410,7 +410,7 @@ export async function POST(request: Request) {
       errorMessage = String(error)
     }
 
-    // 返回格式化良好的错误响应
+    // [comment removed]
     return NextResponse.json(
       {
         error: errorMessage,

@@ -26,8 +26,8 @@ export default function RegisterPage() {
 
     if (password !== confirmPassword) {
       toast({
-        title: "密码不匹配",
-        description: "请确保两次输入的密码相同。",
+        title: "Passwords Don't Match",
+        description: "Please ensure both passwords are the same.",
         variant: "destructive",
       })
       return
@@ -38,15 +38,15 @@ export default function RegisterPage() {
     try {
       await signUp(email, password)
       toast({
-        title: "注册成功",
-        description: "请检查您的邮箱以确认账户。",
+        title: "Registration Successful",
+        description: "Please check your email to confirm your account.",
       })
       router.push("/login")
     } catch (error) {
       console.error("Registration error:", error)
       toast({
-        title: "注册失败",
-        description: "注册过程中出现错误，请重试。",
+        title: "Registration Failed",
+        description: "An error occurred during registration. Please try again.",
         variant: "destructive",
       })
     } finally {
@@ -58,13 +58,13 @@ export default function RegisterPage() {
     <div className="container flex items-center justify-center min-h-[calc(100vh-4rem)] py-10">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle className="text-2xl">注册</CardTitle>
-          <CardDescription>创建一个新账户以使用所有功能</CardDescription>
+          <CardTitle className="text-2xl">Register</CardTitle>
+          <CardDescription>Create a new account to access all features</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">邮箱</Label>
+              <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 type="email"
@@ -75,7 +75,7 @@ export default function RegisterPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">密码</Label>
+              <Label htmlFor="password">Password</Label>
               <Input
                 id="password"
                 type="password"
@@ -85,7 +85,7 @@ export default function RegisterPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">确认密码</Label>
+              <Label htmlFor="confirmPassword">Confirm Password</Label>
               <Input
                 id="confirmPassword"
                 type="password"
@@ -95,13 +95,13 @@ export default function RegisterPage() {
               />
             </div>
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "注册中..." : "注册"}
+              {isLoading ? "Registering..." : "Register"}
             </Button>
           </form>
           <div className="mt-4 text-center text-sm">
-            已有账户？{" "}
+            Already have an account?{" "}
             <Link href="/login" className="text-primary hover:underline">
-              登录
+              Login
             </Link>
           </div>
         </CardContent>
