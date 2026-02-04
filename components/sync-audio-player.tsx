@@ -30,65 +30,65 @@ export default function SyncAudioPlayer({ audioUrl, text, sentenceTimestamps = [
   const [audioLoadingState, setAudioLoadingState] = useState<'idle' | 'loading' | 'loaded' | 'error'>('idle')
   const [audioMetadataLoaded, setAudioMetadataLoaded] = useState(false)
   
-  // 添加防抖和性能优化的refs
+  // [comment removed]
   const lastUpdateTime = useRef<number>(0)
   const timeUpdateThrottle = useRef<number | null>(null)
   const lastSentenceIndex = useRef<number>(-1)
 
-  // 获取当前句子索引，使用改进的函数
+  // [comment removed]
   const getCurrentSentenceIndex = useCallback(
     (currentTime: number): number => {
       if (processedTimestamps.length === 0) {
         return -1
       }
 
-      // 验证输入参数
+      // [comment removed]
       if (typeof currentTime !== "number" || isNaN(currentTime) || currentTime < 0) {
         return -1
       }
 
-      // 使用改进的算法，包含容差机制
+      // [comment removed]
       const tolerance = 0.15 // 150ms容差，适应音频播放的微小延迟
 
-      // 首先进行精确匹配
+      // [comment removed]
       for (let i = 0; i < processedTimestamps.length; i++) {
         const sentence = processedTimestamps[i]
         const startTime = sentence.start
         const endTime = sentence.end || (i < processedTimestamps.length - 1 ? processedTimestamps[i + 1].start : Infinity)
         
-        // 精确匹配：当前时间在句子的开始和结束时间之间
+        // [comment removed]
         if (currentTime >= startTime && currentTime < endTime) {
           return i
         }
       }
 
-      // 如果精确匹配失败，尝试容差匹配
+      // [comment removed]
       for (let i = 0; i < processedTimestamps.length; i++) {
         const sentence = processedTimestamps[i]
         const startTime = sentence.start
         const endTime = sentence.end || (i < processedTimestamps.length - 1 ? processedTimestamps[i + 1].start : Infinity)
         
-        // 容差匹配：允许一定的时间偏差
+        // [comment removed]
         if (currentTime >= startTime - tolerance && currentTime < endTime + tolerance) {
           return i
         }
       }
 
-      // 边界情况处理
+      // [comment removed]
       const firstSentence = processedTimestamps[0]
       const lastSentence = processedTimestamps[processedTimestamps.length - 1]
 
-      // 如果当前时间在第一个句子之前（但在容差范围内），返回第一个句子
+      // [comment removed]
       if (currentTime < firstSentence.start && currentTime >= firstSentence.start - tolerance) {
         return 0
       }
 
-      // 如果当前时间在最后一个句子之后，返回最后一个句子
+      // [comment removed]
       if (currentTime >= lastSentence.start) {
         return processedTimestamps.length - 1
       }
 
-      // 特殊处理：如果只有一个句子且时间在合理范围内，始终高亮该句子
+      // [comment removed]
       if (processedTimestamps.length === 1 && currentTime >= 0) {
         return 0
       }
@@ -98,23 +98,23 @@ export default function SyncAudioPlayer({ audioUrl, text, sentenceTimestamps = [
     [processedTimestamps],
   )
 
-  // 优化的时间更新函数，使用节流机制
+  // [comment removed]
   const throttledTimeUpdate = useCallback((newTime: number) => {
     const now = Date.now()
     const UPDATE_INTERVAL = 100 // 100ms更新间隔，降低CPU使用率
 
-    // 清除之前的定时器
+    // [comment removed]
     if (timeUpdateThrottle.current) {
       clearTimeout(timeUpdateThrottle.current)
     }
 
-    // 如果距离上次更新时间太短，使用定时器延迟更新
+    // [comment removed]
     if (now - lastUpdateTime.current < UPDATE_INTERVAL) {
       timeUpdateThrottle.current = window.setTimeout(() => {
         setCurrentTime(newTime)
         lastUpdateTime.current = Date.now()
         
-        // 只有在句子索引发生变化时才更新
+        // [comment removed]
         const newSentenceIndex = getCurrentSentenceIndex(newTime)
         if (newSentenceIndex !== lastSentenceIndex.current) {
           setCurrentSentenceIndex(newSentenceIndex)
@@ -122,11 +122,11 @@ export default function SyncAudioPlayer({ audioUrl, text, sentenceTimestamps = [
         }
       }, UPDATE_INTERVAL - (now - lastUpdateTime.current))
     } else {
-      // 立即更新
+      // [comment removed]
       setCurrentTime(newTime)
       lastUpdateTime.current = now
       
-      // 只有在句子索引发生变化时才更新
+      // [comment removed]
       const newSentenceIndex = getCurrentSentenceIndex(newTime)
       if (newSentenceIndex !== lastSentenceIndex.current) {
         setCurrentSentenceIndex(newSentenceIndex)
@@ -135,7 +135,7 @@ export default function SyncAudioPlayer({ audioUrl, text, sentenceTimestamps = [
     }
   }, [getCurrentSentenceIndex])
 
-  // 清理函数
+  // [comment removed]
   useEffect(() => {
     return () => {
       if (timeUpdateThrottle.current) {
@@ -144,7 +144,7 @@ export default function SyncAudioPlayer({ audioUrl, text, sentenceTimestamps = [
     }
   }, [])
 
-  // 音频URL变化时重置状态
+  // [comment removed]
   useEffect(() => {
     if (audioUrl) {
       setAudioLoadingState('loading')
@@ -157,21 +157,21 @@ export default function SyncAudioPlayer({ audioUrl, text, sentenceTimestamps = [
     }
   }, [audioUrl])
 
-  // 调试信息
+  // [comment removed]
   useEffect(() => {
   }, [sentenceTimestamps])
 
-  // 处理时间戳，使用改进的验证和处理逻辑
+  // [comment removed]
   useEffect(() => {
     if (sentenceTimestamps.length > 0) {
 
-      // 使用统一的时间戳处理函数
+      // [comment removed]
       import("@/utils/text-processor").then(({ processTimestamps }) => {
         const processed = processTimestamps(sentenceTimestamps, duration || undefined)
         setProcessedTimestamps(processed)
       })
     } else if (text && isAudioLoaded) {
-      // 如果没有提供时间戳，则使用备用方法
+      // [comment removed]
       import("@/utils/text-processor").then(({ splitIntoSentences, estimateTimestamps }) => {
         const sentences = splitIntoSentences(text)
         const estimatedTimestamps = estimateTimestamps(sentences, duration || text.length * 0.1)
@@ -180,7 +180,7 @@ export default function SyncAudioPlayer({ audioUrl, text, sentenceTimestamps = [
     }
   }, [sentenceTimestamps, text, duration, isAudioLoaded])
 
-  // 音频加载完成后更新实际时长和时间戳，增强状态管理
+  // [comment removed]
   useEffect(() => {
     const audio = audioRef.current
     if (!audio) return
@@ -195,7 +195,7 @@ export default function SyncAudioPlayer({ audioUrl, text, sentenceTimestamps = [
         const actualDuration = audio.duration
         
         if (isNaN(actualDuration) || actualDuration <= 0) {
-          setAudioLoadError("音频时长无效")
+          setAudioLoadError("Invalid audio duration")
           setAudioLoadingState('error')
           return
         }
@@ -204,11 +204,11 @@ export default function SyncAudioPlayer({ audioUrl, text, sentenceTimestamps = [
         setAudioMetadataLoaded(true)
         setAudioLoadingState('loaded')
 
-        // 动态校准时间戳 - 使用实际音频时长
+        // [comment removed]
         if (processedTimestamps.length > 0) {
           import("@/utils/text-processor").then(({ estimateTimestamps, splitIntoSentences }) => {
             
-            // 检查估算时长与实际时长的差异
+            // [comment removed]
             const estimatedDuration = processedTimestamps.length > 0 ? 
               Math.max(...processedTimestamps.map(ts => ts.end || ts.start)) : 0
             
@@ -216,13 +216,13 @@ export default function SyncAudioPlayer({ audioUrl, text, sentenceTimestamps = [
             const diffPercentage = estimatedDuration > 0 ? durationDiff / estimatedDuration : 1
             
             
-            // 如果差异超过20%，重新计算时间戳
+            // [comment removed]
             if (diffPercentage > 0.2) {
               const sentences = processedTimestamps.map(ts => ts.text)
               const recalibratedTimestamps = estimateTimestamps(sentences, actualDuration)
               setProcessedTimestamps(recalibratedTimestamps)
             } else {
-              // 小幅调整：按比例缩放现有时间戳
+              // [comment removed]
               const scaleFactor = actualDuration / estimatedDuration
               const scaledTimestamps = processedTimestamps.map(ts => ({
                 ...ts,
@@ -230,7 +230,7 @@ export default function SyncAudioPlayer({ audioUrl, text, sentenceTimestamps = [
                 end: ts.end ? ts.end * scaleFactor : actualDuration,
               }))
               
-              // 确保最后一个句子结束于实际时长
+              // [comment removed]
               if (scaledTimestamps.length > 0) {
                 scaledTimestamps[scaledTimestamps.length - 1].end = actualDuration
               }
@@ -241,7 +241,7 @@ export default function SyncAudioPlayer({ audioUrl, text, sentenceTimestamps = [
         }
       } catch (error) {
         console.error("Error in handleLoadedMetadata:", error)
-        setAudioLoadError("音频元数据加载失败")
+        setAudioLoadError("Failed to load audio metadata")
         setAudioLoadingState('error')
       }
     }
@@ -252,13 +252,13 @@ export default function SyncAudioPlayer({ audioUrl, text, sentenceTimestamps = [
 
     const handleLoadError = (event: Event) => {
       console.error("Audio load error:", event)
-      setAudioLoadError("音频加载失败")
+      setAudioLoadError("Failed to load audio")
       setAudioLoadingState('error')
       setIsAudioLoaded(false)
     }
 
     const handleStalled = () => {
-      // 不改变状态，只记录警告
+      // [comment removed]
     }
 
     const handleProgress = () => {
@@ -290,9 +290,9 @@ export default function SyncAudioPlayer({ audioUrl, text, sentenceTimestamps = [
         console.error("Error removing audio load event listeners:", error)
       }
     }
-  }, [text, sentenceTimestamps]) // 移除processedTimestamps依赖以避免循环
+  }, [text, sentenceTimestamps]) // [comment removed]
 
-  // 监听播放进度，增强错误处理
+  // [comment removed]
   useEffect(() => {
     const audio = audioRef.current
     if (!audio) {
@@ -302,7 +302,7 @@ export default function SyncAudioPlayer({ audioUrl, text, sentenceTimestamps = [
     const handleTimeUpdate = () => {
       try {
         if (audio.currentTime !== undefined && !isNaN(audio.currentTime)) {
-          // 使用节流的时间更新函数
+          // [comment removed]
           throttledTimeUpdate(audio.currentTime)
         } else {
         }
@@ -330,7 +330,7 @@ export default function SyncAudioPlayer({ audioUrl, text, sentenceTimestamps = [
     const handleEnded = () => {
       try {
         setIsPlaying(false)
-        setCurrentSentenceIndex(-1) // 重置当前句子索引
+        setCurrentSentenceIndex(-1) // [comment removed]
       } catch (error) {
         console.error("Error in handleEnded:", error)
       }
@@ -358,9 +358,9 @@ export default function SyncAudioPlayer({ audioUrl, text, sentenceTimestamps = [
         console.error("Error removing audio event listeners:", error)
       }
     }
-  }, [throttledTimeUpdate]) // 使用throttledTimeUpdate而不是getCurrentSentenceIndex
+  }, [throttledTimeUpdate]) // [comment removed]
 
-  // 播放/暂停控制，考虑音频加载状态
+  // [comment removed]
   const togglePlayPause = () => {
     const audio = audioRef.current
     if (!audio) {
@@ -368,7 +368,7 @@ export default function SyncAudioPlayer({ audioUrl, text, sentenceTimestamps = [
       return
     }
 
-    // 检查音频加载状态
+    // [comment removed]
     if (audioLoadingState === 'loading') {
       return
     }
@@ -386,17 +386,17 @@ export default function SyncAudioPlayer({ audioUrl, text, sentenceTimestamps = [
       if (isPlaying) {
         audio.pause()
       } else {
-        // 确保音频元数据已加载
+        // [comment removed]
         if (!audioMetadataLoaded) {
-          audio.load() // 重新加载音频
+          audio.load() // [comment removed]
           return
         }
 
         audio.play().catch((error) => {
           console.error("Audio play failed:", error)
-          setIsPlaying(false) // 确保状态同步
+          setIsPlaying(false) // [comment removed]
           
-          // 尝试重新加载音频
+          // [comment removed]
           if (error.name === 'NotAllowedError') {
           } else {
             audio.load()
@@ -409,7 +409,7 @@ export default function SyncAudioPlayer({ audioUrl, text, sentenceTimestamps = [
     }
   }
 
-  // 跳转到上一句，增强错误处理
+  // [comment removed]
   const skipToPreviousSentence = () => {
     try {
       if (currentSentenceIndex <= 0 || processedTimestamps.length === 0) {
@@ -423,7 +423,7 @@ export default function SyncAudioPlayer({ audioUrl, text, sentenceTimestamps = [
     }
   }
 
-  // 跳转到下一句，增强错误处理
+  // [comment removed]
   const skipToNextSentence = () => {
     try {
       if (currentSentenceIndex >= processedTimestamps.length - 1 || processedTimestamps.length === 0) {
@@ -437,10 +437,10 @@ export default function SyncAudioPlayer({ audioUrl, text, sentenceTimestamps = [
     }
   }
 
-  // 点击句子跳转，增强错误处理
+  // [comment removed]
   const jumpToSentence = (index: number) => {
     try {
-      // 验证输入参数
+      // [comment removed]
       if (typeof index !== "number" || isNaN(index)) {
         console.error("Invalid sentence index:", index)
         return
@@ -464,23 +464,23 @@ export default function SyncAudioPlayer({ audioUrl, text, sentenceTimestamps = [
 
       const startTime = sentence.start
 
-      // 验证音频元素状态
+      // [comment removed]
       if (isNaN(audio.duration) || audio.duration === 0) {
       }
 
-      // 确保时间在有效范围内
+      // [comment removed]
       if (typeof startTime === "number" && !isNaN(startTime) && startTime >= 0) {
         if (audio.duration && startTime <= audio.duration) {
-          // 跳转到句子的开始时间
+          // [comment removed]
           audio.currentTime = startTime
         } else if (!audio.duration) {
-          // 如果音频还在加载，直接设置时间
+          // [comment removed]
           audio.currentTime = startTime
         } else {
           audio.currentTime = Math.min(startTime, audio.duration)
         }
 
-        // 如果没有播放，则开始播放
+        // [comment removed]
         if (!isPlaying) {
           audio.play().catch((error) => {
             console.error("Failed to start playback after sentence jump:", error)
@@ -489,10 +489,10 @@ export default function SyncAudioPlayer({ audioUrl, text, sentenceTimestamps = [
         }
       } else {
         console.error(`Invalid start time: ${startTime}, defaulting to beginning of audio`)
-        // 如果时间无效，默认跳转到音频开始
+        // [comment removed]
         audio.currentTime = 0
 
-        // 如果没有播放，则开始播放
+        // [comment removed]
         if (!isPlaying) {
           audio.play().catch((error) => {
             console.error("Failed to start playback after fallback jump:", error)
@@ -505,15 +505,15 @@ export default function SyncAudioPlayer({ audioUrl, text, sentenceTimestamps = [
     }
   }
 
-  // 格式化时间，增强错误处理
+  // [comment removed]
   const formatTime = (time: number) => {
     try {
-      // 验证输入
+      // [comment removed]
       if (typeof time !== "number" || isNaN(time) || time < 0) {
         return "0:00"
       }
 
-      // 处理无穷大的情况
+      // [comment removed]
       if (!isFinite(time)) {
         return "0:00"
       }
@@ -595,7 +595,7 @@ export default function SyncAudioPlayer({ audioUrl, text, sentenceTimestamps = [
           <div className="px-3 py-2 bg-muted rounded-md">
             <p className="text-sm text-muted-foreground flex items-center gap-2">
               <div className="h-3 w-3 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-              正在加载音频...
+              Loading audio...
             </p>
           </div>
         )}

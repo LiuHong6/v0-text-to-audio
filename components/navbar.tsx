@@ -20,22 +20,22 @@ export default function Navbar() {
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-6">
           <Link href="/" className="text-xl font-bold">
-            文本转语音
+            Text to Speech
           </Link>
           <nav className="hidden md:flex gap-6">
             <Link href="/" className="text-sm font-medium hover:underline">
-              首页
+              Home
             </Link>
             {user && (
               <>
                 <Link href="/dashboard" className="text-sm font-medium hover:underline">
-                  控制台
+                  Dashboard
                 </Link>
                 <Link href="/history" className="text-sm font-medium hover:underline">
-                  历史记录
+                  History
                 </Link>
                 <Link href="/settings" className="text-sm font-medium hover:underline">
-                  设置
+                  Settings
                 </Link>
               </>
             )}
@@ -61,35 +61,35 @@ export default function Navbar() {
                 <DropdownMenuItem asChild>
                   <Link href="/" className="cursor-pointer flex w-full items-center">
                     <Home className="mr-2 h-4 w-4" />
-                    <span>首页</span>
+                    <span>Home</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href="/dashboard" className="cursor-pointer flex w-full items-center">
                     <Settings className="mr-2 h-4 w-4" />
-                    <span>控制台</span>
+                    <span>Dashboard</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href="/history" className="cursor-pointer flex w-full items-center">
                     <History className="mr-2 h-4 w-4" />
-                    <span>历史记录</span>
+                    <span>History</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="cursor-pointer" onClick={() => signOut()}>
                   <LogOut className="mr-2 h-4 w-4" />
-                  <span>退出登录</span>
+                  <span>Sign Out</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
             <div className="flex gap-2">
               <Button variant="ghost" asChild>
-                <Link href="/login">登录</Link>
+                <Link href="/login">Login</Link>
               </Button>
               <Button asChild>
-                <Link href="/register">注册</Link>
+                <Link href="/register">Register</Link>
               </Button>
             </div>
           )}

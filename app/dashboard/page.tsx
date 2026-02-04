@@ -13,30 +13,30 @@ export default function DashboardPage() {
   return (
     <ProtectedRoute>
       <div className="container py-10">
-        <h1 className="text-3xl font-bold mb-6">控制台</h1>
+        <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle>欢迎回来</CardTitle>
+              <CardTitle>Welcome Back</CardTitle>
               <CardDescription>{user?.email}</CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">您可以在这里管理您的账户和查看您的历史记录。</p>
+              <p className="text-sm text-muted-foreground">You can manage your account and view your history here.</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle>文本转语音</CardTitle>
-              <CardDescription>将文本转换为语音</CardDescription>
+              <CardTitle>Text to Speech</CardTitle>
+              <CardDescription>Convert text to speech</CardDescription>
             </CardHeader>
             <CardContent className="flex justify-between items-center">
-              <p className="text-sm text-muted-foreground">创建新的语音转换</p>
+              <p className="text-sm text-muted-foreground">Create new speech conversion</p>
               <Button asChild>
                 <Link href="/">
                   <Volume2 className="mr-2 h-4 w-4" />
-                  开始转换
+                  Start Converting
                 </Link>
               </Button>
             </CardContent>
@@ -44,15 +44,15 @@ export default function DashboardPage() {
 
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle>历史记录</CardTitle>
-              <CardDescription>查看您的转换历史</CardDescription>
+              <CardTitle>History</CardTitle>
+              <CardDescription>View your conversion history</CardDescription>
             </CardHeader>
             <CardContent className="flex justify-between items-center">
-              <p className="text-sm text-muted-foreground">查看和管理您的历史记录</p>
+              <p className="text-sm text-muted-foreground">View and manage your history</p>
               <Button variant="outline" asChild>
                 <Link href="/history">
                   <History className="mr-2 h-4 w-4" />
-                  查看历史
+                  View History
                 </Link>
               </Button>
             </CardContent>
@@ -60,15 +60,15 @@ export default function DashboardPage() {
 
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle>账户设置</CardTitle>
-              <CardDescription>管理您的个人资料</CardDescription>
+              <CardTitle>Account Settings</CardTitle>
+              <CardDescription>Manage your profile</CardDescription>
             </CardHeader>
             <CardContent className="flex justify-between items-center">
-              <p className="text-sm text-muted-foreground">更新您的个人资料和偏好设置</p>
+              <p className="text-sm text-muted-foreground">Update your profile and preferences</p>
               <Button variant="outline" asChild>
                 <Link href="/settings">
                   <Settings className="mr-2 h-4 w-4" />
-                  设置
+                  Settings
                 </Link>
               </Button>
             </CardContent>
