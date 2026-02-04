@@ -2,15 +2,16 @@
 
 import type React from "react"
 
-import { createContext, useContext, useEffect, useState } from "react"
+import { createContext, useContext, useEffect, useState, useMemo } from "react"
 import type { Session, User } from "@supabase/supabase-js"
-import { createClientSupabaseClient } from "@/lib/supabase"
+import { createClientSupabaseClient, isSupabaseConfigured } from "@/lib/supabase"
 import { useRouter } from "next/navigation"
 
 type AuthContextType = {
   user: User | null
   session: Session | null
   isLoading: boolean
+  isConfigured: boolean
   signUp: (email: string, password: string) => Promise<void>
   signIn: (email: string, password: string) => Promise<void>
   signOut: () => Promise<void>
@@ -23,9 +24,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
-  const supabase = createClientSupabaseClient()
+  const supabase = useMemo(() => createClientSupabaseClient(), [])
+  const configured = isSupabaseConfigured()
 
   useEffect(() => {
+    // 如果 Supabase 未配置，直接设置加载完成
+    if (!supabase) {
+      setIsLoading(false)
+      return
+    }
+
     const getSession = async () => {
       const {
         data: { session },
@@ -53,9 +61,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => {
       subscription.unsubscribe()
     }
-  }, [router, supabase.auth])
+  }, [router, supabase])
 
   const signUp = async (email: string, password: string) => {
+    if (!supabase) {
+      throw new Error("Supabase is not configured")
+    }
     setIsLoading(true)
     const { error } = await supabase.auth.signUp({
       email,
@@ -68,6 +79,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signIn = async (email: string, password: string) => {
+    if (!supabase) {
+      throw new Error("Supabase is not configured")
+    }
     setIsLoading(true)
     const { error } = await supabase.auth.signInWithPassword({
       email,
@@ -81,6 +95,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signOut = async () => {
+    if (!supabase) {
+      throw new Error("Supabase is not configured")
+    }
     setIsLoading(true)
     const { error } = await supabase.auth.signOut()
     if (error) {
@@ -96,6 +113,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user,
         session,
         isLoading,
+        isConfigured: configured,
         signUp,
         signIn,
         signOut,

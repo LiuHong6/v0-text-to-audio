@@ -36,7 +36,7 @@ export default function TextToSpeechPage() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isFallbackAudio, setIsFallbackAudio] = useState(false)
-  const { user } = useAuth()
+  const { user, isConfigured } = useAuth()
   const { toast } = useToast()
   const supabase = createClientSupabaseClient()
 
@@ -112,8 +112,8 @@ export default function TextToSpeechPage() {
         })
       }
 
-      // 如果用户已登录，保存到历史记录
-      if (user && !data.savedToHistory) {
+      // 如果用户已登录且 Supabase 已配置，保存到历史记录
+      if (user && supabase && !data.savedToHistory) {
         const { error: saveError } = await supabase.from("audio_history").insert({
           user_id: user.id,
           text_content: text,
